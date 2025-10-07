@@ -1,6 +1,7 @@
 package dev.terraquad.integral.client
 
 import dev.terraquad.integral.Integral
+import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import dev.terraquad.integral.send
 import net.fabricmc.api.ClientModInitializer
@@ -80,8 +81,9 @@ class IntegralClient : ClientModInitializer {
                 ?.get("badges")
                 ?.asArray
                 ?.find { badge -> badge.asString == "library" } != null
+            val isTopLevel = mod.containingMod.isEmpty
 
-            return !isBuiltin && !isFabric && !hasModMenuLibraryBadge
+            return !isBuiltin && !isFabric && !hasModMenuLibraryBadge && isTopLevel
         }
 
         fun packShouldBeReported(pack: ResourcePackProfile): Boolean {
@@ -102,7 +104,11 @@ class IntegralClient : ClientModInitializer {
             }
         }
 
-        ClientPlayConnectionEvents.JOIN.register { _, sender, _ ->
+        ClientPlayConnectionEvents.JOIN.register { _, sender, client ->
+            if (Config.data.enableModInSingleplayer && client.isInSingleplayer) {
+                Integral.logger.debug("Detected singleplayer, disabling mod...")
+                return@register
+            }
             ClientEventC2SPayload(ClientEvent.READY).send(sender)
             ready = true
         }

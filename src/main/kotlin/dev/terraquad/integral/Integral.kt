@@ -1,9 +1,8 @@
-@file:OptIn(ExperimentalTime::class)
-
 package dev.terraquad.integral
 
 import de.erdbeerbaerlp.dcintegration.common.DiscordIntegration
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration
+import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
@@ -13,7 +12,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import org.geysermc.geyser.api.GeyserApi
 import org.slf4j.LoggerFactory
 import java.util.*
-import kotlin.time.ExperimentalTime
 
 class Integral : ModInitializer {
     companion object {
@@ -24,6 +22,19 @@ class Integral : ModInitializer {
         var installCheckJoinTicks = mutableMapOf<UUID, Int>()
     }
 
+    fun logList(message: String) {
+        for (line in message.lineSequence()) {
+            logger.info(line)
+        }
+        if (Config.data.sendListsToDiscord) {
+            DiscordIntegration.INSTANCE?.let {
+                val logChannelID = Configuration.instance().commandLog.channelID
+                if (logChannelID == "0") return@let
+                it.sendMessage("### Integral\n> $message", it.getChannel(logChannelID))
+            }
+        }
+    }
+
     override fun onInitialize() {
         PayloadTypeRegistry.playS2C().register(GetListS2CPayload.id, GetListS2CPayload.codec)
         PayloadTypeRegistry.playC2S().register(SendListC2SPayload.id, SendListC2SPayload.codec)
@@ -32,8 +43,8 @@ class Integral : ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(SendListC2SPayload.id) { payload, context ->
             logger.debug("Received {} list from {}", payload.type, context.player().name.string)
 
-            val headline = "${context.player().name.string} sent ${payload.type} list:"
-            val list = StringBuilder().let {
+            val message = StringBuilder().let {
+                it.appendLine("${context.player().name.string} sent ${payload.type} list:")
                 payload.entries.forEachIndexed { i, entry ->
                     it.append("- ")
                     entry.onEachIndexed { j, (prop, value) ->
@@ -44,46 +55,41 @@ class Integral : ModInitializer {
                 }
                 it.toString()
             }
-
-            logger.info(headline)
-            for (line in list.lineSequence()) logger.info(line)
-
-            DiscordIntegration.INSTANCE?.let {
-                val message = "### Integral - $headline:\n$list"
-                val logChannelID = Configuration.instance().commandLog.channelID
-                if (logChannelID == "0") return@let
-                it.sendMessage(message, it.getChannel(logChannelID))
-            }
+            logList(message)
         }
 
         ServerPlayNetworking.registerGlobalReceiver(ClientEventC2SPayload.id) { payload, context ->
             logger.debug("Received client event {} from {}", payload.event, context.player().name.string)
-            if (payload.event == ClientEvent.READY) {
-                installCheckJoinTicks.remove(context.player().uuid)
-                GetListS2CPayload(
-                    ListType.MODS,
-                    listOf(EntryProperty.NAME, EntryProperty.VERSION),
-                ).send(context.responseSender())
+            when (payload.event) {
+                ClientEvent.READY -> {
+                    installCheckJoinTicks.remove(context.player().uuid)
+                    if (Config.data.requestModsOnJoin) {
+                        GetListS2CPayload(
+                            ListType.MODS,
+                            listOf(EntryProperty.NAME, EntryProperty.VERSION),
+                        ).send(context.responseSender())
+                    }
+                    if (Config.data.requestResourcePacksOnJoin) {
+                        GetListS2CPayload(
+                            ListType.RESOURCE_PACKS,
+                            Config.data.modProperties,
+                        ).send(context.responseSender())
+                    }
+                }
+
+                ClientEvent.PACK_RELOAD -> {
+                    if (Config.data.requestResourcePacksOnReload) {
+                        GetListS2CPayload(
+                            ListType.RESOURCE_PACKS,
+                            Config.data.resourcePackProperties,
+                        ).send(context.responseSender())
+                    }
+                }
             }
-            GetListS2CPayload(
-                ListType.RESOURCE_PACKS,
-                listOf(EntryProperty.NAME),
-            ).send(context.responseSender())
         }
 
         ServerPlayConnectionEvents.JOIN.register { handler, _, server ->
-            var installCheckCandidate = true
-            try {
-                if (GeyserApi.api().isBedrockPlayer(handler.player.uuid)) {
-                    logger.info(
-                        "{} is connected through Geyser, list requests won't be sent",
-                        handler.player.name.string
-                    )
-                    installCheckCandidate = false
-                }
-            } catch (_: RuntimeException) {
-            }
-            if (installCheckCandidate) {
+            if (Config.data.logPlayersWithoutMod) {
                 installCheckJoinTicks[handler.player.uuid] = server.ticks
             }
         }
@@ -97,10 +103,12 @@ class Integral : ModInitializer {
             installCheckJoinTicks.onEach { (uuid, tick) ->
                 if (server.ticks - tick > INSTALL_CHECK_TIMEOUT) {
                     val player = server.playerManager.getPlayer(uuid)!!
-                    logger.info(
-                        "{} doesn't have Integral installed client-side, list requests won't be sent",
-                        player.name.string
-                    )
+                    val isGeyser = runCatching { GeyserApi.api().isBedrockPlayer(uuid) }.getOrDefault(false)
+                    if (isGeyser && Config.data.logGeyserPlayers) {
+                        logList("${player.name.string} is connected through Geyser, list requests won't be sent")
+                    } else if (!isGeyser) {
+                        logList("${player.name.string} doesn't have the mod installed client-side, list requests won't be sent")
+                    }
                     installCheckJoinTicks.remove(uuid)
                 }
             }

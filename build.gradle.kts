@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.20"
     id("fabric-loom") version "1.+"
     id("com.modrinth.minotaur") version "2.+"
 }
@@ -45,8 +46,11 @@ repositories {
 }
 
 dependencies {
+    // Optional mod integrations
     modApi("org.geysermc.geyser:api:${project.property("geyser_version")}")
     modApi("de.erdbeerbaerlp:dcintegration.common:${project.property("dcintegration_version")}")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
     mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
