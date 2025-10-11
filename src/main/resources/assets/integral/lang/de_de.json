@@ -1,7 +1,6 @@
 {
   "integral.privacy_message": "Dieser Server nutzt Integral und kann deine Mods und Ressourcenpakete sehen.",
   "integral.privacy_message.dismissed": "Diese Nachricht wird für %s nicht nochmal gezeigt.",
-  "integral.command.error.arbitrary_interaction": "Du solltest gerade eigentlich nichts senden...",
   "integral.command.error.missing_mod": "Integral ist nicht auf dem Client von %s installiert.",
   "integral.command.error.unsupported_type": "Der Datentyp dieses Schlüssels wird nicht unterstützt.",
   "integral.command.set_modpack": "Das Server-Modpack wurde erfolgreich geändert.",

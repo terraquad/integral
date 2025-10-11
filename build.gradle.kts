@@ -43,12 +43,6 @@ repositories {
     maven {
         url = uri("https://repo.erdbeerbaerlp.de/repository/maven-public/")
     }
-    maven {
-        url = uri("https://api.modrinth.com/maven")
-        content {
-            includeGroup("maven.modrinth")
-        }
-    }
 }
 
 dependencies {

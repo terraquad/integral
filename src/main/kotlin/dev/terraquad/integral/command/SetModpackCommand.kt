@@ -43,7 +43,6 @@ object SetModpackCommand : Command<ServerCommandSource>, Subcommand<ServerComman
 
     fun onListArrival(player: ServerPlayerEntity, type: ListType, list: Entries) {
         if (player.uuid !in playerModpackStatuses) {
-            player.commandSource.sendError(textTranslatable("integral.command.error.arbitrary_send"))
             Integral.logger.warn(
                 "${player.name.string} tried to change the server modpack arbitrarily, probably by hacking."
             )

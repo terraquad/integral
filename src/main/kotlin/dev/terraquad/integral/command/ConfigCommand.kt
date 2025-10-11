@@ -12,7 +12,10 @@ import dev.terraquad.integral.textTranslatable
 import net.minecraft.command.CommandSource
 import net.minecraft.server.command.CommandManager
 import net.minecraft.server.command.ServerCommandSource
-import kotlin.reflect.full.*
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.memberProperties
 
 object ConfigCommand : Subcommand<ServerCommandSource> {
     val getKey = Command<ServerCommandSource> { context ->
@@ -31,9 +34,10 @@ object ConfigCommand : Subcommand<ServerCommandSource> {
     }
     val setKey = Command<ServerCommandSource> { context ->
         // From https://stackoverflow.com/questions/49511098/call-data-class-copy-via-reflection
-        val copyFunc = ConfigPrefs::class.memberFunctions.find { it.name == "copy" }!!
-
         val keyString = StringArgumentType.getString(context, "key")
+        val value = BoolArgumentType.getBool(context, "value")
+
+        val copyFunc = ConfigPrefs::copy
         val key = copyFunc.parameters.find { it.name == keyString }
         if (key == null) {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().create()
@@ -41,9 +45,8 @@ object ConfigCommand : Subcommand<ServerCommandSource> {
         if (key.type != Boolean::class.createType()) {
             throw IntegralCommand.unsupportedDataType.create()
         }
-        val value = BoolArgumentType.getBool(context, "value")
 
-        Config.prefs = copyFunc.callBy(mapOf(copyFunc.instanceParameter!! to Config.prefs, key to value)) as ConfigPrefs
+        Config.prefs = copyFunc.callBy(mapOf(copyFunc.instanceParameter!! to Config.prefs, key to value))
         context.source.sendFeedback(
             { textTranslatable("integral.command.config.set", keyString, value.toString()) }, true
         )
