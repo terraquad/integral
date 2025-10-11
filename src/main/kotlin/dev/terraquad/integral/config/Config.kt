@@ -20,6 +20,7 @@ object Config {
         prettyPrint = true
         encodeDefaults = true
         allowTrailingComma = true
+        decodeEnumsCaseInsensitive = true
     }
     private var _prefs: ConfigPrefs? = null
     private var _modpack: Modpack? = null

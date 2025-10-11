@@ -4,9 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConfigPrefs(
+    val knownServers: List<String> = listOf(),
     val enableModInSingleplayer: Boolean = false,
     val compareLists: Boolean = true,
-    val includeOverlaps: Boolean = false,
+    val excludeOverlaps: Boolean = false,
     val requestModsOnJoin: Boolean = true,
     val requestResourcePacksOnJoin: Boolean = true,
     val requestResourcePacksOnReload: Boolean = true,

@@ -3,7 +3,7 @@
   "id": "integral",
   "version": "${version}",
   "name": "Integral",
-  "description": "Server administration tool to verify that a client modpack hasn't been edited.",
+  "description": "Anticheat utility to collect client modpack contents and edits",
   "authors": [],
   "contact": {},
   "license": "MIT",

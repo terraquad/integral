@@ -30,9 +30,8 @@ class Integral : ModInitializer {
         }
 
         fun writeListAnswer(
-            playerName: String, type: ListType, playerList: Entries, forceIncludeOverlaps: Boolean
-        ): String = StringBuilder().let {
-            it.append("$playerName sent ${type.friendlyString()}")
+            playerName: String, type: ListType, clientList: Entries, forceIncludeOverlaps: Boolean
+        ): String = StringBuilder("$playerName sent ${type.friendlyString()}").let {
             val serverList = when (type) {
                 ListType.MODS -> Config.modpack.mods
                 ListType.RESOURCE_PACKS -> Config.modpack.resourcePacks
@@ -40,23 +39,23 @@ class Integral : ModInitializer {
             if (Config.prefs.compareLists && serverList != null) {
                 it.appendLine(", changes to server modpack: ")
                 // Log added entries (only client has entry)
-                playerList.filter { entry -> entry.key !in serverList }.forEach { (id, version) ->
+                clientList.filter { entry -> entry.key !in serverList }.forEach { (id, version) ->
                     it.append("+ $id")
                     if (type != ListType.RESOURCE_PACKS) it.appendLine(" (client: $version)")
                     else it.appendLine()
                 }
                 // Log removed entries (only server has entry)
-                serverList.filter { entry -> entry.key !in playerList }.forEach { (id, version) ->
+                serverList.filter { entry -> entry.key !in clientList }.forEach { (id, version) ->
                     it.append("- $id")
                     if (type != ListType.RESOURCE_PACKS) it.appendLine(" (server: $version)")
                     else it.appendLine()
                 }
                 // Log overlapping entries (both client and server have entry)
-                if (Config.prefs.includeOverlaps || forceIncludeOverlaps) {
-                    playerList.keys.intersect(serverList.keys).forEach { id ->
+                if (!Config.prefs.excludeOverlaps || forceIncludeOverlaps) {
+                    clientList.keys.intersect(serverList.keys).forEach { id ->
                         it.append("~ $id")
                         if (type != ListType.RESOURCE_PACKS) {
-                            val clientVersion = playerList[id]
+                            val clientVersion = clientList[id]
                             val serverVersion = serverList[id]
                             if (clientVersion != serverVersion) {
                                 it.appendLine(" (client: $clientVersion, server: $serverVersion)")
@@ -70,7 +69,7 @@ class Integral : ModInitializer {
                 }
             } else {
                 it.appendLine(":")
-                playerList.forEach { (id, version) ->
+                clientList.forEach { (id, version) ->
                     it.appendLine("~ $id ($version)")
                 }
             }

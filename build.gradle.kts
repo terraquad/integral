@@ -104,7 +104,6 @@ modrinth {
     projectId.set("hsCVHRSM")
     versionType.set("beta")
     uploadFile.set(tasks.remapJar)
-    changelog.set(rootProject.file("CHANGELOG.md").readText())
     syncBodyFrom.set(rootProject.file("README.md").readText())
     dependencies {
         required.project("fabric-api")
