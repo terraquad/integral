@@ -28,7 +28,7 @@ All commands start with `/integral` and require operator status (= permission le
 | Subcommand            | Description                                                                                                                                                                                         |
 |-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `set_modpack`         | Sends the mod and resource packs lists of the executing player´to the server. When `compareLists` is enabled (see below), all lists will indicate what mods players added/removed from the modpack. |
-| `get <TYPE> <PLAYER>` | Requests a mod or resource pack list from the specified player and sends it to the executing player once received.                                                                                  | 
+| `get <PLAYER> <TYPE>` | Requests a mod or resource pack list from the specified player and sends it to the executing player once received.                                                                                  | 
 | `reload`              | Reloads the server-side configuration (both `integral.json` and `integral_modpack.json`)                                                                                                            | 
 
 ## Config options

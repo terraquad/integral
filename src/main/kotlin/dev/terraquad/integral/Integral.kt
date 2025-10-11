@@ -2,14 +2,10 @@ package dev.terraquad.integral
 
 import de.erdbeerbaerlp.dcintegration.common.DiscordIntegration
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration
-import de.maxhenkel.admiral.MinecraftAdmiral
 import dev.terraquad.integral.command.IntegralCommand
-import dev.terraquad.integral.command.ListTypeArgumentSupplier
-import dev.terraquad.integral.command.ListTypeArgumentTypeSupplier
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import net.fabricmc.api.ModInitializer
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import org.slf4j.LoggerFactory
@@ -33,7 +29,12 @@ class Integral : ModInitializer {
             }
         }
 
-        fun writeListAnswer(playerName: String, type: ListType, playerList: Entries): String = StringBuilder().let {
+        fun writeListAnswer(
+            playerName: String,
+            type: ListType,
+            playerList: Entries,
+            forceIncludeOverlaps: Boolean
+        ): String = StringBuilder().let {
             it.append("$playerName sent ${type.friendlyString()}")
             val serverList = when (type) {
                 ListType.MODS -> Config.modpack.mods
@@ -54,18 +55,20 @@ class Integral : ModInitializer {
                     else it.appendLine()
                 }
                 // Log overlapping entries (both client and server have entry)
-                if (Config.prefs.includeOverlaps) playerList.keys.intersect(serverList.keys).forEach { id ->
-                    it.append("~ $id")
-                    if (type != ListType.RESOURCE_PACKS) {
-                        val clientVersion = playerList[id]
-                        val serverVersion = serverList[id]
-                        if (clientVersion != serverVersion) {
-                            it.appendLine(" (client: $clientVersion, server: $serverVersion)")
+                if (Config.prefs.includeOverlaps || forceIncludeOverlaps) {
+                    playerList.keys.intersect(serverList.keys).forEach { id ->
+                        it.append("~ $id")
+                        if (type != ListType.RESOURCE_PACKS) {
+                            val clientVersion = playerList[id]
+                            val serverVersion = serverList[id]
+                            if (clientVersion != serverVersion) {
+                                it.appendLine(" (client: $clientVersion, server: $serverVersion)")
+                            } else {
+                                it.appendLine(" ($serverVersion)")
+                            }
                         } else {
-                            it.appendLine(" ($serverVersion)")
+                            it.appendLine()
                         }
-                    } else {
-                        it.appendLine()
                     }
                 }
             } else {
@@ -105,7 +108,7 @@ class Integral : ModInitializer {
                 ListReason.GET_LIST -> IntegralCommand.processList(context.player(), payload.type, payload.entries)
 
                 else -> {
-                    val message = writeListAnswer(context.player().name.string, payload.type, payload.entries)
+                    val message = writeListAnswer(context.player().name.string, payload.type, payload.entries, false)
                     if (message.lines().count() > 2) {
                         logList(message)
                     } else if (Config.prefs.compareLists && Config.prefs.reportConformingPlayers) {
@@ -151,18 +154,6 @@ class Integral : ModInitializer {
             }
         }
 
-        CommandRegistrationCallback.EVENT.register { dispatcher, registryAccess, _ ->
-            MinecraftAdmiral
-                .builder(dispatcher, registryAccess)
-                .addCommandClasses(IntegralCommand::class.java)
-                .addArgumentTypes { argumentTypeRegistry ->
-                    argumentTypeRegistry.register(
-                        ListType::class.java,
-                        ListTypeArgumentSupplier(),
-                        ListTypeArgumentTypeSupplier(),
-                    )
-                }
-                .build()
-        }
+        IntegralCommand.register()
     }
 }
