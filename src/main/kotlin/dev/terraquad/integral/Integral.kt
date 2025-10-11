@@ -2,7 +2,6 @@ package dev.terraquad.integral
 
 import de.erdbeerbaerlp.dcintegration.common.DiscordIntegration
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration
-import dev.terraquad.integral.command.IntegralCommand
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import net.fabricmc.api.ModInitializer

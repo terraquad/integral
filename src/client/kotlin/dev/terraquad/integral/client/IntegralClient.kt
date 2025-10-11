@@ -5,6 +5,7 @@ import dev.terraquad.integral.Integral
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import dev.terraquad.integral.send
+import dev.terraquad.integral.textTranslatable
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
@@ -12,7 +13,6 @@ import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
 import net.minecraft.client.MinecraftClient
 import net.minecraft.resource.ResourcePackProfile
-import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import kotlin.jvm.optionals.getOrNull
 
@@ -57,12 +57,14 @@ class IntegralClient : ClientModInitializer {
             val serverInfo = context.client().currentServerEntry
             if (serverInfo != null && serverInfo.address !in Config.prefs.knownServers) {
                 context.client().player!!.sendMessage(
-                    Text.literal("This server uses Integral and can see which mods and resource packs are enabled on your client.\n")
-                        .formatted(Formatting.YELLOW).formatted(Formatting.ITALIC), false
+                    textTranslatable("integral.privacy_message").formatted(Formatting.YELLOW)
+                        .formatted(Formatting.ITALIC), false
                 )
                 context.client().player!!.sendMessage(
-                    Text.literal("This message won't be shown again for ${serverInfo.address}.")
-                        .formatted(Formatting.YELLOW), false
+                    textTranslatable(
+                        "integral.privacy_message.dismissed",
+                        serverInfo.address
+                    ).formatted(Formatting.YELLOW), false
                 )
                 Config.prefs = Config.prefs.copy(knownServers = Config.prefs.knownServers + serverInfo.address)
             }

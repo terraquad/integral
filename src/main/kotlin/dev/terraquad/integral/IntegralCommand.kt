@@ -1,17 +1,13 @@
-package dev.terraquad.integral.command
+package dev.terraquad.integral
 
 import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
-import dev.terraquad.integral.Entries
-import dev.terraquad.integral.Integral
-import dev.terraquad.integral.PlayerManager
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.GetListS2CPayload
 import dev.terraquad.integral.networking.ListReason
 import dev.terraquad.integral.networking.ListType
-import dev.terraquad.integral.send
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.command.CommandSource
@@ -38,17 +34,15 @@ object IntegralCommand {
                         CommandManager.literal("set_modpack").executes(IntegralCommand::setModpack)
                     ).then(
                         CommandManager.literal("reload").executes(IntegralCommand::reloadConfig)
-                    )
-                    .then(
+                    ).then(
                         CommandManager.literal("get").then(
-                            CommandManager.argument("player", EntityArgumentType.player())
-                                .then(
-                                    CommandManager.argument("type", StringArgumentType.word()).suggests { _, builder ->
-                                        CommandSource.suggestMatching(
-                                            ListType.entries.map { it.toString() }, builder
-                                        )
-                                    }.executes(IntegralCommand::getList)
-                                )
+                            CommandManager.argument("player", EntityArgumentType.player()).then(
+                                CommandManager.argument("type", StringArgumentType.word()).suggests { _, builder ->
+                                    CommandSource.suggestMatching(
+                                        ListType.entries.map { it.toString() }, builder
+                                    )
+                                }.executes(IntegralCommand::getList)
+                            )
                         )
                     )
             )
@@ -57,7 +51,7 @@ object IntegralCommand {
 
     fun setModpack(context: CommandContext<ServerCommandSource>): Int {
         if (!PlayerManager.isPlayerEnabled(context.source.playerOrThrow.uuid)) {
-            context.source.sendError(Text.literal("You need to have Integral installed client-side to change the modpack"))
+            context.source.sendError(textTranslatable("integral.command.set_modpack.missing_mod"))
             return 0
         }
 
@@ -77,8 +71,8 @@ object IntegralCommand {
 
     fun processModpack(player: ServerPlayerEntity, type: ListType, list: Entries) {
         if (player.uuid !in playerModpackStatuses) {
-            player.commandSource.sendError(Text.literal("You are not supposed to set modpacks! Oh well..."))
-            Integral.logger.warn("${player.name.string} tried to change the server modpack without permission!")
+            player.commandSource.sendError(textTranslatable("integral.command.set_modpack.arbitrary_send"))
+            Integral.logger.warn("${player.name.string} tried to change the server modpack arbitrarily, probably by hacking.")
             return
         }
 
@@ -105,7 +99,7 @@ object IntegralCommand {
     fun reloadConfig(context: CommandContext<ServerCommandSource>): Int {
         Config.loadPrefs()
         Config.loadModpack()
-        context.source.sendFeedback({ Text.literal("Successfully reloaded server-side configuration!") }, true)
+        context.source.sendFeedback({ textTranslatable("integral.command.reload.success") }, true)
         return 1
     }
 
@@ -120,7 +114,7 @@ object IntegralCommand {
 
         if (!PlayerManager.isPlayerEnabled(player.uuid)) {
             context.source.sendError(
-                Text.literal("${player.name.string} doesn't have Integral installed client-side, so they can't answer to list requests")
+                textTranslatable("integral.command.get.missing_mod", player.name.string)
             )
             return 0
         }
@@ -134,7 +128,7 @@ object IntegralCommand {
 
     fun processList(player: ServerPlayerEntity, type: ListType, list: Entries) {
         if (player.uuid !in listRequestors) {
-            Integral.logger.warn("${player.name.string} sent a list but no one asked for it")
+            Integral.logger.warn("${player.name.string} sent a list in response to a get request that nobody sent...")
             return
         }
 

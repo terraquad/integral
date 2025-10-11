@@ -1,6 +1,6 @@
 # Integral
 
-> Verify that your players didn't modify their modpack you gave them
+> Verify that your players didn't edit the modpack you gave them
 
 ## Features
 
@@ -9,7 +9,7 @@
 - The server will log the lists to the console and to Discord (see `sendListsToDiscord` below)
 - It will also log whenever the mod isn't installed client-side and can differentiate between Java and Bedrock/Geyser
   players
-- Players will be notified when a server sends a list request for the first time
+- Players will be notified when servers send list requests for the first time
 
 ### Drawbacks
 

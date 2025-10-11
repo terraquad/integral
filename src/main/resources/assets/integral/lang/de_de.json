@@ -1,0 +1,9 @@
+{
+  "integral.privacy_message": "Dieser Server nutzt Integral und kann deine Mods und Ressourcenpakete sehen.",
+  "integral.privacy_message.dismissed": "Diese Nachricht wird für %s nicht nochmal gezeigt.",
+  "integral.command.set_modpack.missing_mod": "Integral muss auf deinem Client installiert sein, damit du das Modpack ändern kannst",
+  "integral.command.set_modpack.arbitrary_send": "Du solltest gerade eigentlich keine Modpacks senden...",
+  "integral.command.set_modpack.success": "Das Server-Modpack wurde erfolgreich geändert.",
+  "integral.command.reload.success": "Die Server-Konfiguration wurde erfolgreich neugeladen.",
+  "integral.command.get.missing_mod": "Integral ist bei %s nicht installiert, weswegen keine Listenanfragen gesendet werden können."
+}
