@@ -17,4 +17,4 @@ inline fun <reified E : Enum<E>> enumCodec() = PacketCodecs.indexed(
 
 fun textTranslatable(key: String) = Text.translatableWithFallback(key, Language.getInstance().get(key))!!
 fun textTranslatable(key: String, vararg args: Any) =
-    Text.translatableWithFallback(key, Language.getInstance().get(key), args)!!
+    Text.translatableWithFallback(key, Language.getInstance().get(key), *args)!!

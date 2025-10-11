@@ -57,14 +57,12 @@ class IntegralClient : ClientModInitializer {
             val serverInfo = context.client().currentServerEntry
             if (serverInfo != null && serverInfo.address !in Config.prefs.knownServers) {
                 context.client().player!!.sendMessage(
-                    textTranslatable("integral.privacy_message").formatted(Formatting.YELLOW)
-                        .formatted(Formatting.ITALIC), false
+                    textTranslatable("integral.privacy_message").formatted(Formatting.YELLOW), false
                 )
                 context.client().player!!.sendMessage(
                     textTranslatable(
-                        "integral.privacy_message.dismissed",
-                        serverInfo.address
-                    ).formatted(Formatting.YELLOW), false
+                        "integral.privacy_message.dismissed", serverInfo.address
+                    ).formatted(Formatting.YELLOW).formatted(Formatting.ITALIC), false
                 )
                 Config.prefs = Config.prefs.copy(knownServers = Config.prefs.knownServers + serverInfo.address)
             }

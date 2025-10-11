@@ -11,8 +11,8 @@ data class ConfigPrefs(
     val requestModsOnJoin: Boolean = true,
     val requestResourcePacksOnJoin: Boolean = true,
     val requestResourcePacksOnReload: Boolean = true,
-    val reportConformingPlayers: Boolean = false,
+    val reportConformingPlayers: Boolean = true,
     val reportPlayersWithoutMod: Boolean = true,
-    val reportGeyserPlayers: Boolean = false,
+    val reportGeyserPlayers: Boolean = true,
     val sendListsToDiscord: Boolean = false,
 )

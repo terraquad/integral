@@ -59,7 +59,7 @@ object Config {
     }
 
     fun loadModpack(): Modpack {
-        if (prefsFile.exists()) {
+        if (modpackFile.exists()) {
             try {
                 _modpack = configFormat.decodeFromStream<Modpack>(modpackFile.inputStream())
             } catch (e: Exception) {
