@@ -1,6 +1,9 @@
 package dev.terraquad.integral.command
 
+import com.mojang.brigadier.LiteralMessage
+import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import dev.terraquad.integral.Entries
 import dev.terraquad.integral.Integral
 import dev.terraquad.integral.PlayerManager
@@ -9,55 +12,44 @@ import dev.terraquad.integral.networking.GetListS2CPayload
 import dev.terraquad.integral.networking.ListReason
 import dev.terraquad.integral.networking.ListType
 import dev.terraquad.integral.send
-import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.command.CommandSource
 import net.minecraft.command.argument.EntityArgumentType
-import net.minecraft.command.argument.serialize.ConstantArgumentSerializer
 import net.minecraft.server.command.CommandManager
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
-import net.minecraft.util.Identifier
 import java.util.*
 
 object IntegralCommand {
     data class ModpackSendStatus(var mods: Boolean = false, var resourcePacks: Boolean = false)
 
+    val invalidListTypeError = DynamicCommandExceptionType { LiteralMessage("Invalid list type: $it") }
+
     private val playerModpackStatuses = hashMapOf<UUID, ModpackSendStatus>()
     private val listRequestors = hashMapOf<UUID, ServerCommandSource>()
 
     fun register() {
-        ArgumentTypeRegistry.registerArgumentType(
-            Identifier.of(Integral.MOD_ID, "list_type"),
-            ListTypeArgumentType::class.java,
-            ConstantArgumentSerializer.of(::ListTypeArgumentType)
-        )
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
-                CommandManager
-                    .literal("integral")
-                    .requires { source -> source.hasPermissionLevel(4) }
+                CommandManager.literal("integral").requires { source -> source.hasPermissionLevel(4) }
                     .then(
-                        CommandManager
-                            .literal("set_modpack")
-                            .executes(IntegralCommand::setModpack)
+                        CommandManager.literal("set_modpack").executes(IntegralCommand::setModpack)
                     ).then(
-                        CommandManager
-                            .literal("reload")
-                            .executes(IntegralCommand::reloadConfig)
-                    ).then(
-                        CommandManager
-                            .literal("get")
-                            .then(
-                                CommandManager
-                                    .argument("player", EntityArgumentType.player())
-                                    .then(
-                                        CommandManager
-                                            .argument("type", ListTypeArgumentType())
-                                            .executes(IntegralCommand::getList)
-                                    )
-                            )
+                        CommandManager.literal("reload").executes(IntegralCommand::reloadConfig)
+                    )
+                    .then(
+                        CommandManager.literal("get").then(
+                            CommandManager.argument("player", EntityArgumentType.player())
+                                .then(
+                                    CommandManager.argument("type", StringArgumentType.word()).suggests { _, builder ->
+                                        CommandSource.suggestMatching(
+                                            ListType.entries.map { it.toString() }, builder
+                                        )
+                                    }.executes(IntegralCommand::getList)
+                                )
+                        )
                     )
             )
         }
@@ -121,7 +113,10 @@ object IntegralCommand {
         context: CommandContext<ServerCommandSource>
     ): Int {
         val player = EntityArgumentType.getPlayer(context, "player")
-        val type = ListTypeArgumentType.getListType(context, "type")
+        val typeString = StringArgumentType.getString(context, "type")
+        val type =
+            runCatching { ListType.valueOf(typeString) }.onFailure { throw invalidListTypeError.create(typeString) }
+                .getOrThrow()
 
         if (!PlayerManager.isPlayerEnabled(player.uuid)) {
             context.source.sendError(

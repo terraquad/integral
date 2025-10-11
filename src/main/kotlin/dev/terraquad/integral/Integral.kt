@@ -30,10 +30,7 @@ class Integral : ModInitializer {
         }
 
         fun writeListAnswer(
-            playerName: String,
-            type: ListType,
-            playerList: Entries,
-            forceIncludeOverlaps: Boolean
+            playerName: String, type: ListType, playerList: Entries, forceIncludeOverlaps: Boolean
         ): String = StringBuilder().let {
             it.append("$playerName sent ${type.friendlyString()}")
             val serverList = when (type) {
@@ -92,10 +89,7 @@ class Integral : ModInitializer {
 
         ServerPlayNetworking.registerGlobalReceiver(SendListC2SPayload.id) { payload, context ->
             logger.debug(
-                "Received {} list from {} because of {}",
-                payload.type,
-                context.player().name.string,
-                payload.reason
+                "Received {} list from {} because of {}", payload.type, context.player().name.string, payload.reason
             )
 
             when (payload.reason) {
