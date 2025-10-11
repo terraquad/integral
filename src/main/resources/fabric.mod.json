@@ -4,8 +4,19 @@
   "version": "${version}",
   "name": "Integral",
   "description": "Anticheat utility to collect client modpack contents and edits",
-  "authors": [],
-  "contact": {},
+  "authors": [
+    {
+      "name": "terraquad",
+      "contact": {
+        "email": "tq@terraquad.dev",
+        "homepage": "https://terraquad.dev"
+      }
+    }
+  ],
+  "contact": {
+    "sources": "https://github.com/terraquad/integral",
+    "issues": "https://github.com/terraquad/integral/issues"
+  },
   "license": "MIT",
   "icon": "assets/integral/icon.png",
   "environment": "*",
@@ -34,5 +45,8 @@
     "fabric-language-kotlin": ">=${kotlin_loader_version}",
     "fabric": "*",
     "minecraft": ">=${minecraft_version}"
+  },
+  "recommends": {
+    "chatpatches": "*"
   }
 }

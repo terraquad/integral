@@ -27,14 +27,16 @@ class IntegralClient : ClientModInitializer {
 
         @JvmStatic
         fun getPackList() = Entries(
-            MinecraftClient.getInstance().resourcePackManager.enabledProfiles.filter(IntegralClient::packShouldBeReported)
-                .associate { it.displayName.string to "" })
+            MinecraftClient.getInstance().resourcePackManager.enabledProfiles.filter(
+                IntegralClient::packShouldBeReported
+            ).associate { it.displayName.string to "" })
 
         fun modShouldBeReported(mod: ModContainer): Boolean {
             val isBuiltin = mod.metadata.type == "builtin"
             val isFabric = mod.metadata.id.startsWith("fabric")
-            val hasModMenuLibraryBadge =
-                mod.metadata.customValues["modmenu"]?.asObject?.get("badges")?.asArray?.find { badge -> badge.asString == "library" } != null
+            val hasModMenuLibraryBadge = mod.metadata.customValues["modmenu"]?.asObject?.get(
+                "badges"
+            )?.asArray?.find { badge -> badge.asString == "library" } != null
             val isTopLevel = mod.containingMod.isEmpty
 
             return !isBuiltin && !isFabric && !hasModMenuLibraryBadge && isTopLevel

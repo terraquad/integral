@@ -2,6 +2,9 @@ package dev.terraquad.integral
 
 import de.erdbeerbaerlp.dcintegration.common.DiscordIntegration
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration
+import dev.terraquad.integral.command.GetCommand
+import dev.terraquad.integral.command.IntegralCommand
+import dev.terraquad.integral.command.SetModpackCommand
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel
@@ -95,20 +98,26 @@ class Integral : ModInitializer {
             )
 
             when (payload.reason) {
-                ListReason.SET_MODPACK -> IntegralCommand.processModpack(
+                ListReason.SET_MODPACK -> SetModpackCommand.onListArrival(
                     context.player(),
                     payload.type,
                     payload.entries,
                 )
 
-                ListReason.GET_LIST -> IntegralCommand.processList(context.player(), payload.type, payload.entries)
+                ListReason.GET_LIST -> GetCommand.onListArrival(
+                    context.player(), payload.type, payload.entries
+                )
 
                 else -> {
-                    val message = writeListAnswer(context.player().name.string, payload.type, payload.entries, false)
+                    val message = writeListAnswer(
+                        context.player().name.string, payload.type, payload.entries, false
+                    )
                     if (message.lines().count() > 2) {
                         logList(message)
                     } else if (Config.prefs.compareLists && Config.prefs.reportConformingPlayers) {
-                        logList("${context.player().name.string} uses the same ${payload.type.friendlyString()} as the server modpack")
+                        logList(
+                            "${context.player().name.string} uses the same ${payload.type.friendlyString()} as the server modpack"
+                        )
                     } else if (!Config.prefs.compareLists) {
                         logList(
                             "${context.player().name.string} sent an empty ${
@@ -121,7 +130,9 @@ class Integral : ModInitializer {
         }
 
         ServerPlayNetworking.registerGlobalReceiver(ClientEventC2SPayload.id) { payload, context ->
-            logger.debug("Received client event {} from {}", payload.event, context.player().name.string)
+            logger.debug(
+                "Received client event {} from {}", payload.event, context.player().name.string
+            )
             when (payload.event) {
                 ClientEvent.READY -> {
                     PlayerManager.enablePlayer(context.player().uuid)

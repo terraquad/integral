@@ -13,31 +13,35 @@
 
 ### Drawbacks
 
-**For server owners:** This mod doesn't protect your server on its own; it's possible for hackers to
+This mod doesn't protect your server on its own; it's possible for hackers to
 spoof their lists, which is why you should still use other anticheat measures.
 Additionally, unlike other anticheat mods, Integral will never kick/ban players.
+
+**Recommendation:** Install a mod which increases the chat line limit
+(e.g. [Chat Patches](https://modrinth.com/mod/chatpatches)), since `/integral get` results may send more than 100 lines.
 
 ## Commands
 
 All commands start with `/integral` and require operator status (= permission level 4)
 
-| Subcommand            | Description                                                                                                        |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------|
-| `set_modpack`         | Sends the mod and resource packs lists of the executing player to the server. See `compareLists` below.            |
-| `get <PLAYER> <TYPE>` | Requests a mod or resource pack list from the specified player and sends it to the executing player once received. | 
-| `reload`              | Reloads the server-side configuration (both `integral.json` and `integral_modpack.json`)                           | 
+| Subcommand             | Description                                                                                                        |
+|------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `set_modpack`          | Sends the mod and resource packs lists of the executing player to the server. See `compareLists` below.            |
+| `get <PLAYER> <TYPE>`  | Requests a mod or resource pack list from the specified player and sends it to the executing player once received. | 
+| `reload`               | Reloads the server-side configuration (both `integral.json` and `integral_modpack.json`)                           | 
+| `config <KEY> [VALUE]` | Retrieves/changes the config value at `KEY`.                                                                       |
 
 ## Config options
 
-| Option                         | Default | Description                                                                                                                                                                                       |
-|--------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `enableModInSingleplayer`      | `false` | Whether Integral should enable/disable itself when it detects that the client is in singleplayer.                                                                                                 |
-| `compareLists`                 | `true`  | When this is enabled and `/integral set_modpack` has been run at least once, Integral will show which mods were added/removed from the client modpack.                                            |
-| `excludeOverlaps`              | `false` | When `compareLists` is true, this option will cause Integral to only print changes to the modpack.                                                                                                |
-| `requestModsOnJoin`            | `true`  | Whether a mod list should be requested from players with Integral when they join the server.                                                                                                      |
-| `requestResourcePacksOnJoin`   | `true`  | Same as `requestModsOnJoin` but for resource packs.                                                                                                                                               |
-| `requestResourcePacksOnReload` | `true`  | Players could spoof their resource pack list by enabling resource packs after joining. This option combats this by resending the resource pack list when the player reloads their resource packs. |
-| `reportConformingPlayers`      | `true`  | When `compareLists` is enabled and no list changes are present, this causes the player to still be logged.                                                                                        |
-| `reportPlayersWithoutMod`      | `true`  | Logs players who don't have Integral installed, since they can't respond to list requests. Players who are connected through Geyser aren't affected by this option.                               |
-| `reportGeyserPlayers`          | `true`  | Include Geyser players in `reportPlayersWithoutMod`; they get a special log message.                                                                                                              |
-| `sendListsToDiscord`           | `false` | When [Discord Integration](https://modrinth.com/plugin/dcintegration) is installed, lists are logged to the command log channel (if configured).                                                  |
+| Option                         | Default | Description                                                                                                                                                                                        |
+|--------------------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enableModInSingleplayer`      | `false` | Whether Integral should enable/disable itself when it detects that the client is in singleplayer.                                                                                                  |
+| `compareLists`                 | `true`  | When this is enabled and `/integral set_modpack` has been run at least once, Integral will show which mods were added/removed from the client modpack.                                             |
+| `excludeOverlaps`              | `false` | When `compareLists` is true, this option will cause Integral to only print changes to the modpack.                                                                                                 |
+| `requestModsOnJoin`            | `true`  | Whether a mod list should be requested from players with Integral when they join the server.                                                                                                       |
+| `requestResourcePacksOnJoin`   | `true`  | Same as `requestModsOnJoin` but for resource packs.                                                                                                                                                |
+| `requestResourcePacksOnReload` | `true`  | Players could spoof their resource pack list by enabling resource packs after joining. This option combats this by requesting the resource pack list when the player reloads their resource packs. |
+| `reportConformingPlayers`      | `true`  | When `compareLists` is enabled and no list changes are present, affected players will get logged anyways with this option.                                                                         |
+| `reportPlayersWithoutMod`      | `true`  | Logs players who don't have Integral installed, since they can't respond to list requests. Players who are connected through Geyser aren't affected by this option.                                |
+| `reportGeyserPlayers`          | `true`  | Include Geyser players in `reportPlayersWithoutMod`; they get a special log message.                                                                                                               |
+| `sendListsToDiscord`           | `false` | When [Discord Integration](https://modrinth.com/plugin/dcintegration) is installed, lists are logged to the command log channel (if configured).                                                   |
