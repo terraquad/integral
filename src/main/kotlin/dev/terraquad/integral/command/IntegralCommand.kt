@@ -53,7 +53,7 @@ object IntegralCommand {
     fun processModpack(player: ServerPlayerEntity, type: ListType, list: Entries) {
         if (player.uuid !in playerModpackStatuses) {
             player.commandSource.sendError(Text.literal("You are not supposed to set modpacks! Oh well..."))
-            Integral.Companion.logger.warn("${player.name.string} tried to change the server modpack without permission!")
+            Integral.logger.warn("${player.name.string} tried to change the server modpack without permission!")
             return
         }
 
@@ -109,12 +109,12 @@ object IntegralCommand {
 
     fun processList(player: ServerPlayerEntity, type: ListType, list: Entries) {
         if (player.uuid !in listRequestors) {
-            Integral.Companion.logger.warn("${player.name.string} sent a list but no one asked for it")
+            Integral.logger.warn("${player.name.string} sent a list but no one asked for it")
             return
         }
 
         listRequestors[player.uuid]!!.sendFeedback({
-            Text.literal(Integral.Companion.writeListAnswer(player.name.string, type, list))
+            Text.literal(Integral.writeListAnswer(player.name.string, type, list))
         }, false)
         listRequestors.remove(player.uuid)
     }

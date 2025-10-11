@@ -19,7 +19,7 @@ class ListTypeArgumentSupplier : ArgumentTypeSupplier<ServerCommandSource, Comma
                 Integral.MOD_ID,
                 "list_type"
             )
-        ) { context, builder ->
+        ) { _, builder ->
             CommandSource.suggestMatching(ListType.entries.map { it.toString() }, builder)
         }!!
     }
