@@ -1,5 +1,6 @@
 package dev.terraquad.integral.client
 
+import dev.terraquad.integral.Entries
 import dev.terraquad.integral.Integral
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
@@ -7,7 +8,6 @@ import dev.terraquad.integral.send
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
-import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
 import net.minecraft.client.MinecraftClient
@@ -19,68 +19,20 @@ class IntegralClient : ClientModInitializer {
         @JvmStatic
         var ready = false
 
-        fun sendModList(sender: PacketSender, props: List<EntryProperty>) {
-            if (!ready) return
-
-            val modList = FabricLoader
-                .getInstance()
-                .allMods
-                .filter(IntegralClient::modShouldBeReported)
-                .map {
-                    val modData = HashMap.newHashMap<EntryProperty, String>(props.count())
-                    for (prop in props) {
-                        modData[prop] = when (prop) {
-                            EntryProperty.ID -> it.metadata.id
-                            EntryProperty.NAME -> it.metadata.name
-                            EntryProperty.VERSION -> it.metadata.version.friendlyString
-                        }
-                    }
-                    modData
-                }.toList()
-
-            SendListC2SPayload(
-                ListType.MODS,
-                modList,
-            ).send(sender)
-        }
+        fun getModList() = Entries(
+            FabricLoader.getInstance().allMods.filter(IntegralClient::modShouldBeReported)
+                .associate { it.metadata.id to it.metadata.version.friendlyString })
 
         @JvmStatic
-        fun sendPackList(sender: PacketSender, props: List<EntryProperty>) {
-            if (!ready) return
-
-            val packList = MinecraftClient
-                .getInstance()
-                .resourcePackManager
-                .enabledProfiles
-                .filter(IntegralClient::packShouldBeReported)
-                .map {
-                    val packData = HashMap.newHashMap<EntryProperty, String>(props.count())
-                    for (prop in props) {
-                        packData[prop] = when (prop) {
-                            EntryProperty.ID -> it.id
-                            EntryProperty.NAME -> it.displayName.string
-                            EntryProperty.VERSION -> continue
-                        }
-                    }
-                    packData
-                }.toList()
-
-            SendListC2SPayload(
-                ListType.RESOURCE_PACKS,
-                packList,
-            ).send(sender)
-        }
+        fun getPackList() = Entries(
+            MinecraftClient.getInstance().resourcePackManager.enabledProfiles.filter(IntegralClient::packShouldBeReported)
+                .associate { it.displayName.string to "" })
 
         fun modShouldBeReported(mod: ModContainer): Boolean {
             val isBuiltin = mod.metadata.type == "builtin"
             val isFabric = mod.metadata.id.startsWith("fabric")
-            val hasModMenuLibraryBadge = mod
-                .metadata
-                .customValues["modmenu"]
-                ?.asObject
-                ?.get("badges")
-                ?.asArray
-                ?.find { badge -> badge.asString == "library" } != null
+            val hasModMenuLibraryBadge =
+                mod.metadata.customValues["modmenu"]?.asObject?.get("badges")?.asArray?.find { badge -> badge.asString == "library" } != null
             val isTopLevel = mod.containingMod.isEmpty
 
             return !isBuiltin && !isFabric && !hasModMenuLibraryBadge && isTopLevel
@@ -93,20 +45,26 @@ class IntegralClient : ClientModInitializer {
 
     override fun onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(GetListS2CPayload.id) { payload, context ->
+            if (!ready) return@registerGlobalReceiver
             Integral.logger.debug(
-                "Received {} list request (properties: {}) from server",
+                "Received {} list request from server because of {}",
                 payload.type,
-                payload.props.joinToString(", "),
+                payload.reason,
             )
-            when (payload.type) {
-                ListType.MODS -> sendModList(context.responseSender(), payload.props)
-                ListType.RESOURCE_PACKS -> sendPackList(context.responseSender(), payload.props)
-            }
+
+            SendListC2SPayload(
+                payload.type,
+                payload.reason,
+                when (payload.type) {
+                    ListType.MODS -> getModList()
+                    ListType.RESOURCE_PACKS -> getPackList()
+                },
+            ).send(context.responseSender())
         }
 
         ClientPlayConnectionEvents.JOIN.register { _, sender, client ->
-            if (Config.data.enableModInSingleplayer && client.isInSingleplayer) {
-                Integral.logger.debug("Detected singleplayer, disabling mod...")
+            if (!Config.prefs.enableModInSingleplayer && client.isInSingleplayer && client.server?.isRemote == true) {
+                Integral.logger.info("Detected singleplayer and `enableInSingleplayer` is false")
                 return@register
             }
             ClientEventC2SPayload(ClientEvent.READY).send(sender)

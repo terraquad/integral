@@ -18,7 +18,7 @@ public abstract class ResourcePackManagerMixin {
     @Inject(method = "createResourcePacks", at = @At("HEAD"))
     private void emitEventAfterReload(CallbackInfoReturnable<List<ResourcePack>> cir) {
         if (IntegralClient.getReady()) {
-            ClientPlayNetworking.send(new ClientEventC2SPayload(ClientEvent.PACK_RELOAD));
+            ClientPlayNetworking.send(new ClientEventC2SPayload(ClientEvent.RELOAD));
         }
     }
 }

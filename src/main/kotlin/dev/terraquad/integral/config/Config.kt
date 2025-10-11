@@ -13,50 +13,88 @@ import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
 object Config {
-    private const val CONFIG_FILE_NAME = "integral.json"
-    private val configFile
-        get() = FabricLoader.getInstance().configDir.resolve(CONFIG_FILE_NAME)
+    private val prefsFile
+        get() = FabricLoader.getInstance().configDir.resolve("integral.json")
+    private val modpackFile = FabricLoader.getInstance().configDir.resolve("integral_modpack.json")
     private val configFormat = Json {
         prettyPrint = true
         encodeDefaults = true
         allowTrailingComma = true
     }
-    private var _data: ConfigData? = null
+    private var _prefs: ConfigPrefs? = null
+    private var _modpack: Modpack? = null
 
-    val data: ConfigData
-        get() = _data ?: load()
+    var prefs: ConfigPrefs
+        get() = _prefs ?: loadPrefs()
+        set(value) {
+            _prefs = value
+            savePrefs(value)
+        }
 
-    fun load(): ConfigData {
-        if (configFile.exists()) {
+    var modpack: Modpack
+        get() = _modpack ?: loadModpack()
+        set(value) {
+            _modpack = value
+            saveModpack(value)
+        }
+
+    fun loadPrefs(): ConfigPrefs {
+        if (prefsFile.exists()) {
             try {
-                _data = configFormat.decodeFromStream<ConfigData>(configFile.inputStream())
+                _prefs = configFormat.decodeFromStream<ConfigPrefs>(prefsFile.inputStream())
             } catch (e: Exception) {
                 Integral.logger.error("Couldn't read config file, it has been reset to default values", e)
-                _data = ConfigData()
-                overwriteSave()
+                _prefs = ConfigPrefs()
+                savePrefs()
             }
         } else {
             Integral.logger.info("Config file doesn't exist yet, creating it now")
-            _data = ConfigData()
-            overwriteSave()
+            _prefs = ConfigPrefs()
+            savePrefs()
         }
 
         Integral.logger.info("Config is ready!")
-        return _data!!
+        return _prefs!!
     }
 
-    fun save() {
-        if (_data == null) {
-            throw UninitializedPropertyAccessException("Tried saving unloaded config")
+    fun loadModpack(): Modpack {
+        if (prefsFile.exists()) {
+            try {
+                _modpack = configFormat.decodeFromStream<Modpack>(modpackFile.inputStream())
+            } catch (e: Exception) {
+                Integral.logger.error("Couldn't read modpack file, it has been reset to default values", e)
+                _modpack = Modpack()
+                saveModpack()
+            }
+        } else {
+            Integral.logger.info("Modpack file doesn't exist yet, creating it now")
+            _modpack = Modpack()
+            saveModpack()
         }
-        overwriteSave()
+
+        Integral.logger.info("Modpack is ready!")
+        return _modpack!!
     }
 
-    fun overwriteSave() {
+    fun savePrefs() = savePrefs(_prefs ?: ConfigPrefs())
+
+    fun savePrefs(cp: ConfigPrefs) {
         try {
-            configFormat.encodeToStream(_data ?: ConfigData(), configFile.outputStream())
+            configFormat.encodeToStream(cp, prefsFile.outputStream())
+            Integral.logger.info("Saved config successfully!")
         } catch (e: Exception) {
             Integral.logger.error("Couldn't save config", e)
+        }
+    }
+
+    fun saveModpack() = saveModpack(_modpack ?: Modpack())
+
+    fun saveModpack(mp: Modpack) {
+        try {
+            configFormat.encodeToStream(mp, modpackFile.outputStream())
+            Integral.logger.info("Saved modpack successfully!")
+        } catch (e: Exception) {
+            Integral.logger.error("Couldn't save modpack", e)
         }
     }
 }

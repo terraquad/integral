@@ -43,6 +43,12 @@ repositories {
     maven {
         url = uri("https://repo.erdbeerbaerlp.de/repository/maven-public/")
     }
+    maven {
+        url = uri("https://api.modrinth.com/maven")
+        content {
+            includeGroup("maven.modrinth")
+        }
+    }
 }
 
 dependencies {
@@ -56,23 +62,24 @@ dependencies {
     mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
+    modImplementation("maven.modrinth:admiral:${project.property("admiral_version")}")
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
 }
 
 tasks.processResources {
-    inputs.property("version", project.version)
-    inputs.property("minecraft_version", project.property("minecraft_version"))
-    inputs.property("loader_version", project.property("loader_version"))
+    val props = mapOf(
+        "version" to project.version,
+        "minecraft_version" to project.property("minecraft_version")!!,
+        "loader_version" to project.property("loader_version")!!,
+        "kotlin_loader_version" to project.property("kotlin_loader_version")!!,
+        "admiral_version" to project.property("admiral_version")!!
+    )
+    inputs.properties(props)
     filteringCharset = "UTF-8"
 
     filesMatching("fabric.mod.json") {
-        expand(
-            "version" to project.version,
-            "minecraft_version" to project.property("minecraft_version")!!,
-            "loader_version" to project.property("loader_version")!!,
-            "kotlin_loader_version" to project.property("kotlin_loader_version")!!
-        )
+        expand(props)
     }
 }
 
@@ -97,7 +104,7 @@ tasks.jar {
 
 modrinth {
     projectId.set("hsCVHRSM")
-    versionType.set("alpha")
+    versionType.set("beta")
     uploadFile.set(tasks.remapJar)
     syncBodyFrom.set(rootProject.file("README.md").readText())
     dependencies {
