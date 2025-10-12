@@ -59,9 +59,9 @@ object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource
             return
         }
 
-        listRequestors[player.uuid]!!.sendFeedback({
-            Text.literal(Integral.writeListAnswer(player.name.string, type, list, true))
-        }, false)
+        val message =
+            Integral.writeListAnswer(player.name.string, type, list, forceIncludeOverlaps = true)
+        listRequestors[player.uuid]!!.sendFeedback({ Text.literal(message) }, false)
         listRequestors.remove(player.uuid)
     }
 }

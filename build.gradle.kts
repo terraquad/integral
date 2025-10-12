@@ -96,8 +96,9 @@ tasks.jar {
 
 modrinth {
     projectId.set("hsCVHRSM")
-    versionType.set("beta")
+    versionType.set("release")
     uploadFile.set(tasks.remapJar)
+    gameVersions.addAll("1.21.8", "1.21.9", "1.21.10")
     changelog.set(project.property("mod_changelog").toString())
     syncBodyFrom.set(rootProject.file("README.md").readText())
     dependencies {

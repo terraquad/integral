@@ -13,7 +13,6 @@ import net.minecraft.command.CommandSource
 import net.minecraft.server.command.CommandManager
 import net.minecraft.server.command.ServerCommandSource
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberProperties
 
@@ -55,7 +54,12 @@ object ConfigCommand : Subcommand<ServerCommandSource> {
     }
 
     private val keySuggestionProvider = SuggestionProvider<ServerCommandSource> { _, builder ->
-        CommandSource.suggestMatching(ConfigPrefs::class.declaredMemberProperties.map { it.name }, builder)
+        CommandSource.suggestMatching(
+            ConfigPrefs::copy
+                .parameters
+                .filter { it.type == Boolean::class.createType() }
+                .map { it.name }, builder
+        )
     }
 
     override fun getBuilder(): LiteralArgumentBuilder<ServerCommandSource> = CommandManager.literal("config").then(

@@ -28,7 +28,7 @@ class Integral : ModInitializer {
                         val logChannelID = Configuration.instance().commandLog.channelID
                         if (logChannelID == "0") return@let
                         discordLogChannel = it.getChannel(logChannelID)
-                        logger.debug("Using Discord channel {} for Integral lists", logChannelID)
+                        logger.info("Using Discord channel {} for Integral lists", logChannelID)
                     }
                     it.sendMessage("### Integral\n> $message", discordLogChannel)
                 }
@@ -36,7 +36,10 @@ class Integral : ModInitializer {
         }
 
         fun writeListAnswer(
-            playerName: String, type: ListType, clientList: Entries, forceIncludeOverlaps: Boolean
+            playerName: String,
+            type: ListType,
+            clientList: Entries,
+            forceIncludeOverlaps: Boolean = false
         ): String = StringBuilder("$playerName sent ${type.friendlyString()}").let {
             val serverList = when (type) {
                 ListType.MODS -> Config.modpack.mods
@@ -110,7 +113,7 @@ class Integral : ModInitializer {
 
                 else -> {
                     val message = writeListAnswer(
-                        context.player().name.string, payload.type, payload.entries, false
+                        context.player().name.string, payload.type, payload.entries
                     )
                     if (message.lines().count() > 2) {
                         logList(message)
