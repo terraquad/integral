@@ -47,6 +47,6 @@
     "minecraft": ">=${minecraft_version}"
   },
   "recommends": {
-    "chatpatches": "*"
+    "morechathistory": "*"
   }
 }

@@ -18,7 +18,8 @@ spoof their lists, which is why you should still use other anticheat measures.
 Additionally, unlike other anticheat mods, Integral will never kick/ban players.
 
 **Recommendation:** Install a mod which increases the chat line limit
-(e.g. [Chat Patches](https://modrinth.com/mod/chatpatches)), since `/integral get` results may send more than 100 lines.
+(e.g. [More Chat History](https://modrinth.com/mod/morechathistory)), since `/integral get` results may send more than
+100 lines.
 
 ## Commands
 

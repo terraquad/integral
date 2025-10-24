@@ -104,7 +104,6 @@ modrinth {
     dependencies {
         required.project("fabric-api")
         required.project("fabric-language-kotlin")
-        optional.project("geyser")
         optional.project("dcintegration")
     }
 }
