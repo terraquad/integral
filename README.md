@@ -6,16 +6,24 @@
 
 - Operators can request mod and resource packs lists from players
 - These lists are also sent automatically on join and resource reload
-- The server will log the lists to the console and to Discord (see `sendListsToDiscord` below)
-- It will also log whenever the mod isn't installed client-side and can differentiate between Java and Bedrock/Geyser
-  players
+- The server will log the lists to the console and optionally to Discord
+- It will also log whenever the mod isn't installed client-side and can tell
+  Java and Bedrock/Geyser players apart
 - Players will be notified when servers send list requests for the first time
 
 ### Drawbacks
 
 This mod doesn't protect your server on its own; it's possible for hackers to
 spoof their lists, which is why you should still use other anticheat measures.
-Additionally, unlike other anticheat mods, Integral will never kick/ban players.
+
+Another problem is that Integral only reports the mod IDs and version numbers
+it gets from Fabric (mods)/Minecraft (resource packs), which may have been
+altered by editing the metadata of a mod file.
+I plan on combatting this in the future by storing file hashes in the server
+modpack so modifications on the data level can be detected.
+
+Unlike other anticheat mods, Integral will never kick/ban players, that decision
+is left to admins.
 
 **Recommendation:** Install a mod which increases the chat line limit
 (e.g. [More Chat History](https://modrinth.com/mod/morechathistory)), since `/integral get` results may send more than
