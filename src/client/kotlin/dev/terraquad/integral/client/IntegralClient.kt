@@ -80,7 +80,7 @@ class IntegralClient : ClientModInitializer {
         }
 
         ClientPlayConnectionEvents.JOIN.register { _, sender, client ->
-            if (!Config.prefs.enableModInSingleplayer && client.isInSingleplayer && client.server?.isRemote == true) {
+            if (!Config.prefs.enableModInSingleplayer && (client.isInSingleplayer || client.server?.isRemote == false)) {
                 Integral.logger.info("Detected singleplayer and `enableInSingleplayer` is false")
                 return@register
             }
