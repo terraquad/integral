@@ -17,7 +17,9 @@ object IntegralCommand {
 
     fun register() {
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            var builder = CommandManager.literal("integral").requires { source -> source.hasPermissionLevel(4) }
+            var builder = CommandManager.literal("integral").requires { source ->
+                source.hasPermissionLevel(2)
+            }
             for (cmd in subcommands) {
                 builder = builder.then(cmd.getBuilder())
             }

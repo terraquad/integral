@@ -1,6 +1,7 @@
 package dev.terraquad.integral.command
 
 import com.mojang.brigadier.Command
+import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
@@ -23,10 +24,12 @@ import net.minecraft.text.Text
 import java.util.*
 
 object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource> {
+    data class RequestorInfo(val source: ServerCommandSource, val summary: Boolean, val overlaps: Boolean)
+
     private val listTypeSuggestionProvider = SuggestionProvider<ServerCommandSource> { _, builder ->
         CommandSource.suggestMatching(ListType.entries.map { it.toString() }, builder)
     }
-    private val listRequestors = hashMapOf<UUID, ServerCommandSource>()
+    private val listRequestors = hashMapOf<UUID, RequestorInfo>()
 
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val player = EntityArgumentType.getPlayer(context, "player")
@@ -34,14 +37,16 @@ object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource
         val type = runCatching { ListType.valueOf(typeString) }.onFailure {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().create()
         }.getOrThrow()
+        val summary = runCatching { BoolArgumentType.getBool(context, "summary") }.getOrDefault(false)
+        val overlaps = runCatching { BoolArgumentType.getBool(context, "overlaps") }.getOrDefault(false)
 
         if (!PlayerManager.isPlayerEnabled(player.uuid)) {
             throw IntegralCommand.missingMod.create(player.name)
         }
 
         val sender = ServerPlayNetworking.getSender(player)
-        GetListS2CPayload(type, ListReason.GET_LIST).send(sender)
-        listRequestors[player.uuid] = context.source
+        GetListS2CPayload(type, ListReason.GET_COMMAND).send(sender)
+        listRequestors[player.uuid] = RequestorInfo(context.source!!, summary, overlaps)
 
         return 1
     }
@@ -49,7 +54,10 @@ object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource
     override fun getBuilder(): LiteralArgumentBuilder<ServerCommandSource> = CommandManager.literal("get").then(
         CommandManager.argument("player", EntityArgumentType.player()).then(
             CommandManager.argument("type", StringArgumentType.word()).suggests(listTypeSuggestionProvider)
-                .executes(GetCommand)
+                .executes(GetCommand).then(
+                    CommandManager.argument("summary", BoolArgumentType.bool()).executes(GetCommand)
+                        .then(CommandManager.argument("overlaps", BoolArgumentType.bool()).executes(GetCommand))
+                )
         )
     )
 
@@ -58,10 +66,14 @@ object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource
             Integral.logger.warn("${player.name.string} sent a list in response to a get request that nobody sent...")
             return
         }
+        val info = listRequestors[player.uuid]!!
 
-        val message =
-            Integral.writeListAnswer(player.name.string, type, list, forceIncludeOverlaps = true)
-        listRequestors[player.uuid]!!.sendFeedback({ Text.literal(message) }, false)
+        val message = if (info.summary) {
+            Integral.writeListSummary(player.name.string, type, list)
+        } else {
+            Integral.writeListAnswer(player.name.string, type, list, includeOverlaps = info.overlaps)
+        }
+        info.source.sendFeedback({ Text.literal(message) }, false)
         listRequestors.remove(player.uuid)
     }
 }

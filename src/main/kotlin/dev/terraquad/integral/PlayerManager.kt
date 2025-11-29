@@ -20,7 +20,9 @@ object PlayerManager {
                 if (isGeyser && Config.prefs.reportGeyserPlayers) {
                     Integral.logList("${player.name.string} is connected through Geyser, list requests won't be sent")
                 } else if (!isGeyser) {
-                    Integral.logList("${player.name.string} doesn't have the mod installed client-side, list requests won't be sent")
+                    Integral.logList(
+                        "${player.name.string} doesn't have the mod installed client-side, list requests won't be sent"
+                    )
                 }
                 disablePlayer(uuid)
             }

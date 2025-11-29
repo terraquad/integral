@@ -7,7 +7,7 @@ data class ConfigPrefs(
     val knownServers: List<String> = listOf(),
     val enableModInSingleplayer: Boolean = false,
     val compareLists: Boolean = true,
-    val excludeOverlaps: Boolean = false,
+    val includeOverlaps: Boolean = true,
     val requestModsOnJoin: Boolean = true,
     val requestResourcePacksOnJoin: Boolean = true,
     val requestResourcePacksOnReload: Boolean = true,
@@ -15,4 +15,6 @@ data class ConfigPrefs(
     val reportPlayersWithoutMod: Boolean = true,
     val reportGeyserPlayers: Boolean = true,
     val sendListsToDiscord: Boolean = false,
+    val summarizeToOperators: Boolean = false,
+    val summarizeEverywhere: Boolean = false,
 )

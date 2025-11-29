@@ -1,0 +1,10 @@
+{
+  "integral.privacy_message": "Ce serveur utilise Integral et peut voir vos mods et packs de ressources.",
+  "integral.privacy_message.dismissed": "Ce message ne s'affichera plus pour %s.",
+  "integral.command.error.missing_mod": "Integral n'est pas installé sur le client de %s.",
+  "integral.command.error.unsupported_type": "Le type de données de cette clé n'est actuellement pas pris en charge.",
+  "integral.command.set_modpack": "Le modpack du serveur a été modifié avec succès.",
+  "integral.command.reload": "Configuration côté serveur rechargée avec succès.",
+  "integral.command.config.get": "La valeur de configuration pour '%s' est '%s'.",
+  "integral.command.config.set": "Valeur de configuration '%s' définie avec succès sur '%s'."
+}

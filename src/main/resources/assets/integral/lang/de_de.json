@@ -2,9 +2,9 @@
   "integral.privacy_message": "Dieser Server nutzt Integral und kann deine Mods und Ressourcenpakete sehen.",
   "integral.privacy_message.dismissed": "Diese Nachricht wird für %s nicht nochmal gezeigt.",
   "integral.command.error.missing_mod": "Integral ist nicht auf dem Client von %s installiert.",
-  "integral.command.error.unsupported_type": "Der Datentyp dieses Schlüssels wird nicht unterstützt.",
+  "integral.command.error.unsupported_type": "Der Datentyp dieses Schlüssels wird momentan nicht unterstützt.",
   "integral.command.set_modpack": "Das Server-Modpack wurde erfolgreich geändert.",
   "integral.command.reload": "Die Server-Konfiguration wurde erfolgreich neugeladen.",
-  "integral.command.config.get": "Konfigurationswert '%s' = '%s'",
-  "integral.command.config.set": "Der Konfigurationsschlüssel '%s' wurde erfolgreich auf '%s' gesetzt"
+  "integral.command.config.get": "Aktueller Konfigurationswert für '%s' ist '%s'.",
+  "integral.command.config.set": "Der Konfigurationswert von '%s' wurde erfolgreich auf '%s' gesetzt."
 }

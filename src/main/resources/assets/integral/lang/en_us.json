@@ -2,9 +2,9 @@
   "integral.privacy_message": "This server uses Integral and can see your mods and resource packs.",
   "integral.privacy_message.dismissed": "This message won't be shown again for %s.",
   "integral.command.error.missing_mod": "Integral isn't installed on %s's client.",
-  "integral.command.error.unsupported_type": "The data type of this key is unsupported",
+  "integral.command.error.unsupported_type": "The data type of this key is currently unsupported.",
   "integral.command.set_modpack": "Successfully changed server modpack.",
   "integral.command.reload": "Successfully reloaded server-side configuration.",
-  "integral.command.config.get": "Config key '%s' = '%s'",
-  "integral.command.config.set": "Successfully set config key '%s' to '%s'"
+  "integral.command.config.get": "Current config value for '%s' is '%s'.",
+  "integral.command.config.set": "Successfully set config value of '%s' to '%s'."
 }
