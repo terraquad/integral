@@ -1,4 +1,6 @@
 {
+  "integral.player_manager.missing_mod": "%s ne dispose pas du mod installé côté client; des listes ne peuvent pas être demandées.",
+  "integral.player_manager.has_geyser": "%s est connecté via Geyser; des listes ne peuvent pas être demandées.",
   "integral.privacy_message": "Ce serveur utilise Integral et peut voir vos mods et packs de ressources.",
   "integral.privacy_message.dismissed": "Ce message ne s'affichera plus pour %s.",
   "integral.command.error.missing_mod": "Integral n'est pas installé sur le client de %s.",

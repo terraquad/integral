@@ -8,9 +8,18 @@ import org.geysermc.geyser.api.GeyserApi
 import java.util.*
 
 object PlayerManager {
+    // 2 seconds before assuming missing mod
     private const val MOD_CHECK_TIMEOUT = 2 * 20
     private val modCheckJoinTicks = hashMapOf<UUID, Int>()
     val enabledPlayers = hashSetOf<UUID>()
+
+    private fun reportCircumstance(server: MinecraftServer, key: String, player: String) {
+        val message = textTranslatable(key, player)
+        if (Config.prefs.summarizeToOperators) {
+            Integral.broadcastToOps(server, message)
+        }
+        Integral.logList(message.string)
+    }
 
     fun checkModPresence(server: MinecraftServer) {
         modCheckJoinTicks.onEach { (uuid, tick) ->
@@ -18,10 +27,13 @@ object PlayerManager {
                 val player = server.playerManager.getPlayer(uuid)!!
                 val isGeyser = runCatching { GeyserApi.api().isBedrockPlayer(uuid) }.getOrDefault(false)
                 if (isGeyser && Config.prefs.reportGeyserPlayers) {
-                    Integral.logList("${player.name.string} is connected through Geyser, list requests won't be sent")
+                    reportCircumstance(
+                        server, "integral.player_manager.has_geyser", player.name.string
+                    )
                 } else if (!isGeyser) {
-                    Integral.logList(
-                        "${player.name.string} doesn't have the mod installed client-side, list requests won't be sent"
+                    reportCircumstance(
+                        server,
+                        "integral.player_manager.missing_mod", player.name.string
                     )
                 }
                 disablePlayer(uuid)
