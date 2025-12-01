@@ -16,12 +16,6 @@
 This mod doesn't protect your server on its own; it's possible for hackers to
 spoof their lists, which is why you should still use other anticheat measures.
 
-Another problem is that Integral only reports the mod IDs and version numbers
-it gets from Fabric (mods)/Minecraft (resource packs), which may have been
-altered by editing the metadata of a mod file.
-I plan on combatting this in the future by storing file hashes in the server
-modpack so modifications on the data level can be detected.
-
 Unlike other anticheat mods, Integral will never kick/ban players, that decision
 is left to admins.
 
@@ -33,12 +27,12 @@ is left to admins.
 
 All commands start with `/integral` and require operator status (= permission level 4)
 
-| Subcommand                                 | Description                                                                                                                                                                                                                                                                    |
-|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `set_modpack`                              | Sends the mod and resource packs lists of the executing player to the server. See `compareLists` below.                                                                                                                                                                        |
-| `get <PLAYER> <TYPE> [SUMMARY] [OVERLAPS]` | Requests a mod or resource pack list from the specified player and sends it to the executing player once received. `[SUMMARY]` returns a list summary instead of the actual list and `[OVERLAPS]` toggles mods present on both client and server (does nothing with summaries) | 
-| `reload`                                   | Reloads the server-side configuration (both `integral.json` and `integral_modpack.json`)                                                                                                                                                                                       | 
-| `config <KEY> [VALUE]`                     | Retrieves/changes the config value at `KEY`.                                                                                                                                                                                                                                   |
+| Subcommand                                             | Description                                                                                                                                                                                                                                                                             |
+|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `set_modpack`                                          | Sends the mod and resource packs lists of the executing player to the server. See `compareLists` below.                                                                                                                                                                                 |
+| `get <PLAYER> <TYPE> [OVERLAPS=false] [SUMMARY=false]` | Requests a mod or resource pack list from the specified player and sends it to the executing player once received. `[OVERLAPS]` determines the inclusion of entries existing in both the server and client list; `[SUMMARY]` causes the command to return a summary instead of a report | 
+| `reload`                                               | Reloads the server-side configuration (both `integral.json` and `integral_modpack.json`)                                                                                                                                                                                                | 
+| `config <KEY> [VALUE]`                                 | Retrieves/changes the config value at `KEY`.                                                                                                                                                                                                                                            |
 
 ## Config options
 
@@ -50,7 +44,6 @@ All commands start with `/integral` and require operator status (= permission le
 | `requestModsOnJoin`            | `true`  | Whether a mod list should be requested from players with Integral when they join the server.                                                                                                       |
 | `requestResourcePacksOnJoin`   | `true`  | Same as `requestModsOnJoin` but for resource packs.                                                                                                                                                |
 | `requestResourcePacksOnReload` | `true`  | Players could spoof their resource pack list by enabling resource packs after joining. This option combats this by requesting the resource pack list when the player reloads their resource packs. |
-| `reportConformingPlayers`      | `false` | When `compareLists` is enabled and no list changes are present, affected players will get logged anyways with this option.                                                                         |
 | `reportPlayersWithoutMod`      | `true`  | Logs players who don't have Integral installed, since they can't respond to list requests. Players who are connected through Geyser aren't affected by this option.                                |
 | `reportGeyserPlayers`          | `true`  | Include Geyser players in `reportPlayersWithoutMod`; they get a special log message.                                                                                                               |
 | `sendListsToDiscord`           | `false` | When [Discord Integration](https://modrinth.com/plugin/dcintegration) is installed, lists are logged to the command log channel (if configured).                                                   |

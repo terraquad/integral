@@ -11,18 +11,14 @@ object IntegralCommand {
         SimpleCommandExceptionType(textTranslatable("integral.command.error.unsupported_type"))
     val missingMod = DynamicCommandExceptionType { textTranslatable("integral.command.error.missing_mod", it) }
 
-    private val subcommands = listOf(
-        SetModpackCommand, ReloadCommand, GetCommand, ConfigCommand
-    )
-
     fun register() {
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            var builder = CommandManager.literal("integral").requires { source ->
+            val builder = CommandManager.literal("integral").requires { source ->
                 source.hasPermissionLevel(2)
-            }
-            for (cmd in subcommands) {
-                builder = builder.then(cmd.getBuilder())
-            }
+            }.then(SetModpackCommand.getBuilder())
+                .then(ReloadCommand.getBuilder())
+                .then(GetCommand.getBuilder())
+                .then(ConfigCommand.getBuilder())
             dispatcher.register(builder)
         }
     }

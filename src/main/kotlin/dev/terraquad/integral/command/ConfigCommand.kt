@@ -26,7 +26,9 @@ object ConfigCommand : Subcommand<ServerCommandSource> {
 
         val value = key.get(Config.prefs)!!
         context.source.sendFeedback(
-            { textTranslatable("integral.command.config.get", keyString, value.toString()) }, false
+            {
+                textTranslatable("integral.command.config.get", keyString, value.toString())
+            }, false
         )
 
         1
@@ -47,7 +49,9 @@ object ConfigCommand : Subcommand<ServerCommandSource> {
 
         Config.prefs = copyFunc.callBy(mapOf(copyFunc.instanceParameter!! to Config.prefs, key to value))
         context.source.sendFeedback(
-            { textTranslatable("integral.command.config.set", keyString, value.toString()) }, true
+            {
+                textTranslatable("integral.command.config.set", keyString, value.toString())
+            }, true
         )
 
         1
@@ -63,9 +67,13 @@ object ConfigCommand : Subcommand<ServerCommandSource> {
     }
 
     override fun getBuilder(): LiteralArgumentBuilder<ServerCommandSource> = CommandManager.literal("config").then(
-        CommandManager.argument("key", StringArgumentType.word()).suggests(keySuggestionProvider).executes(getKey).then(
-            CommandManager.argument("value", BoolArgumentType.bool()).executes(setKey)
-        )
+        CommandManager.argument("key", StringArgumentType.word())
+            .suggests(keySuggestionProvider)
+            .executes(getKey)
+            .then(
+                CommandManager.argument("value", BoolArgumentType.bool())
+                    .executes(setKey)
+            )
     )
 
 }

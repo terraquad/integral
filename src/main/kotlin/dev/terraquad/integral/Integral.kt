@@ -23,7 +23,7 @@ class Integral : ModInitializer {
 
         private var discordLogChannel: GuildMessageChannel? = null
 
-        fun logList(message: String) {
+        fun broadcastToConsole(message: String) {
             logger.info(message)
             if (Config.prefs.sendListsToDiscord) {
                 DiscordIntegration.INSTANCE?.let {
@@ -41,94 +41,9 @@ class Integral : ModInitializer {
         fun broadcastToOps(server: MinecraftServer, message: Text) {
             server.playerManager.playerList.filter { it.hasPermissionLevel(2) }.forEach {
                 it.sendMessage(
-                    Text.literal("[Integral] ").formatted(Formatting.GRAY).formatted(Formatting.ITALIC).append(message)
+                    Text.literal("[Integral] ").append(message).formatted(Formatting.GRAY)
                 )
             }
-        }
-
-        fun overlayLists(clientList: Entries, serverList: Entries): Triple<Entries, Entries, Entries> {
-            val containBoth = Entries()
-            val containClient = Entries()
-            val containServer = Entries()
-
-            clientList.keys.intersect(serverList.keys).forEach {
-                val clientVer = clientList[it]!!
-                val serverVer = serverList[it]!!
-                if (clientVer != serverVer) {
-                    containBoth[it] = "$clientVer;$serverVer"
-                    return@forEach
-                }
-                containBoth[it] = serverVer
-            }
-            containClient.putAll(clientList.filter { it.key !in serverList })
-            containServer.putAll(serverList.filter { it.key !in clientList })
-
-            return Triple(containBoth, containClient, containServer)
-        }
-
-        fun writeListAnswer(
-            playerName: String,
-            type: ListType,
-            clientList: Entries,
-            reason: ListReason? = null,
-            includeOverlaps: Boolean = false
-        ): String = StringBuilder("$playerName sent ${type.friendlyString()}").let {
-            if (reason != null) {
-                it.append(" at ${reason.friendlyString()}")
-            }
-            val serverList = when (type) {
-                ListType.MODS -> Config.modpack.mods
-                ListType.RESOURCE_PACKS -> Config.modpack.resourcePacks
-            }
-            if (Config.prefs.compareLists && serverList != null) {
-                it.appendLine(", changes to server modpack: ")
-                val overlay = overlayLists(clientList, serverList)
-                // Log added entries
-                for ((id, ver) in overlay.second) {
-                    it.appendLine("| + $id (client: $ver)")
-                }
-                // Log removed entries
-                for ((id, ver) in overlay.third) {
-                    it.appendLine("| - $id (server: $ver")
-                }
-                // Log overlapping entries
-                if (includeOverlaps) for ((id, ver) in overlay.first) {
-                    if (ver.contains(";")) {
-                        val (clientVer, serverVer) = ver.split(";")
-                        it.appendLine("| ~ $id (client: $clientVer, server: $serverVer)")
-                    } else {
-                        it.appendLine("| ~ $id ($ver)")
-                    }
-                }
-            } else {
-                it.appendLine(":")
-                clientList.forEach { (id, ver) ->
-                    it.appendLine("| ~ $id ($ver)")
-                }
-            }
-            it.toString()
-        }
-
-        fun writeListSummary(
-            playerName: String, type: ListType, clientList: Entries, reason: ListReason? = null
-        ): String = StringBuilder("$playerName sent ${type.friendlyString()}").let {
-            if (reason != null) {
-                it.append(" at ${reason.friendlyString()}")
-            }
-            it.append(": ")
-            val serverList = when (type) {
-                ListType.MODS -> Config.modpack.mods
-                ListType.RESOURCE_PACKS -> Config.modpack.resourcePacks
-            }
-            if (Config.prefs.compareLists && serverList != null) {
-                val overlay = overlayLists(clientList, serverList)
-                it.append(
-                    "${overlay.first.count()} kept, ${overlay.second.count()} added, ${overlay.third.count()} removed"
-                )
-            } else {
-                it.append("${clientList.count()} total")
-            }
-            it.toString()
         }
     }
 
@@ -159,39 +74,30 @@ class Integral : ModInitializer {
 
                 else -> {
                     val summary by lazy {
-                        writeListSummary(
-                            context.player().name.string, payload.type, payload.entries, reason = payload.reason
+                        ListWriter.writeSummary(
+                            context.player().name.string,
+                            payload.type,
+                            payload.entries,
+                            reason = payload.reason,
                         )
                     }
-                    val message by lazy {
-                        writeListAnswer(
-                            context.player().name.string, payload.type, payload.entries, reason = payload.reason,
-                            includeOverlaps = Config.prefs.includeOverlaps
+                    val report by lazy {
+                        ListWriter.writeReport(
+                            context.player().name.string,
+                            payload.type,
+                            payload.entries,
+                            reason = payload.reason,
+                            includeOverlaps = Config.prefs.includeOverlaps,
                         )
                     }
 
                     if (Config.prefs.summarizeToOperators) {
-                        broadcastToOps(
-                            context.server(),
-                            Text.literal(summary)
-                        )
+                        broadcastToOps(context.server(), summary)
                     }
                     if (Config.prefs.summarizeEverywhere) {
-                        logList(summary)
+                        broadcastToConsole(summary.string)
                     } else {
-                        if (message.lines().count() < 2) {
-                            logList(
-                                "${context.player().name.string} sent an empty ${
-                                    payload.type.friendlyString().substringBeforeLast('s')
-                                } list"
-                            )
-                        } else if (Config.prefs.compareLists && Config.prefs.reportConformingPlayers) {
-                            logList(
-                                "${context.player().name.string} has the same ${payload.type.friendlyString()} as the server modpack"
-                            )
-                        } else {
-                            logList(message)
-                        }
+                        broadcastToConsole(report.string)
                     }
                 }
             }

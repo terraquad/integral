@@ -4,21 +4,25 @@ import dev.terraquad.integral.config.Config
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.MinecraftServer
+import net.minecraft.text.Text
 import org.geysermc.geyser.api.GeyserApi
 import java.util.*
 
 object PlayerManager {
     // 2 seconds before assuming missing mod
     private const val MOD_CHECK_TIMEOUT = 2 * 20
+
+    // Contains the times when new players joined in ticks
     private val modCheckJoinTicks = hashMapOf<UUID, Int>()
+
+    // All players that have the mod
     val enabledPlayers = hashSetOf<UUID>()
 
-    private fun reportCircumstance(server: MinecraftServer, key: String, player: String) {
-        val message = textTranslatable(key, player)
+    private fun reportCircumstance(server: MinecraftServer, message: Text) {
         if (Config.prefs.summarizeToOperators) {
             Integral.broadcastToOps(server, message)
         }
-        Integral.logList(message.string)
+        Integral.broadcastToConsole(message.string)
     }
 
     fun checkModPresence(server: MinecraftServer) {
@@ -28,12 +32,13 @@ object PlayerManager {
                 val isGeyser = runCatching { GeyserApi.api().isBedrockPlayer(uuid) }.getOrDefault(false)
                 if (isGeyser && Config.prefs.reportGeyserPlayers) {
                     reportCircumstance(
-                        server, "integral.player_manager.has_geyser", player.name.string
+                        server,
+                        textTranslatable("integral.player_manager.has_geyser", player.name.string),
                     )
                 } else if (!isGeyser) {
                     reportCircumstance(
                         server,
-                        "integral.player_manager.missing_mod", player.name.string
+                        textTranslatable("integral.player_manager.missing_mod", player.name.string),
                     )
                 }
                 disablePlayer(uuid)

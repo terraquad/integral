@@ -18,25 +18,36 @@ import kotlin.jvm.optionals.getOrNull
 
 class IntegralClient : ClientModInitializer {
     companion object {
+        // Determines whether the client should respond to list requests
         @JvmStatic
         var ready = false
 
         fun getModList() = Entries(
-            FabricLoader.getInstance().allMods.filter(IntegralClient::modShouldBeReported)
-                .associate { it.metadata.id to it.metadata.version.friendlyString })
+            FabricLoader.getInstance()
+                .allMods
+                .filter(IntegralClient::modShouldBeReported)
+                .associate { it.metadata.id to it.metadata.version.friendlyString }
+        )
 
         @JvmStatic
         fun getPackList() = Entries(
-            MinecraftClient.getInstance().resourcePackManager.enabledProfiles.filter(
-                IntegralClient::packShouldBeReported
-            ).associate { it.displayName.string to "" })
+            MinecraftClient.getInstance()
+                .resourcePackManager
+                .enabledProfiles
+                .filter(IntegralClient::packShouldBeReported)
+                .associate { it.displayName.string to "" }
+        )
 
         fun modShouldBeReported(mod: ModContainer): Boolean {
             val isBuiltin = mod.metadata.type == "builtin"
             val isFabric = mod.metadata.id.startsWith("fabric")
-            val hasModMenuLibraryBadge = mod.metadata.customValues["modmenu"]?.asObject?.get(
-                "badges"
-            )?.asArray?.find { badge -> badge.asString == "library" } != null
+            val hasModMenuLibraryBadge = mod.metadata
+                .customValues["modmenu"]
+                ?.asObject
+                ?.get("badges")
+                ?.asArray
+                ?.find { badge -> badge.asString == "library" } != null
+            // Ensures that unmarked library mods don't show up
             val isTopLevel = mod.containingMod.isEmpty
 
             return !isBuiltin && !isFabric && !hasModMenuLibraryBadge && isTopLevel
@@ -59,12 +70,15 @@ class IntegralClient : ClientModInitializer {
             val serverInfo = context.client().currentServerEntry
             if (serverInfo != null && serverInfo.address !in Config.prefs.knownServers) {
                 context.client().player!!.sendMessage(
-                    textTranslatable("integral.privacy_message").formatted(Formatting.YELLOW), false
+                    textTranslatable("integral.privacy_message")
+                        .formatted(Formatting.YELLOW), false
                 )
                 context.client().player!!.sendMessage(
                     textTranslatable(
                         "integral.privacy_message.dismissed", serverInfo.address
-                    ).formatted(Formatting.YELLOW).formatted(Formatting.ITALIC), false
+                    )
+                        .formatted(Formatting.YELLOW)
+                        .formatted(Formatting.ITALIC), false
                 )
                 Config.prefs = Config.prefs.copy(knownServers = Config.prefs.knownServers + serverInfo.address)
             }
@@ -81,7 +95,7 @@ class IntegralClient : ClientModInitializer {
 
         ClientPlayConnectionEvents.JOIN.register { _, sender, client ->
             if (!Config.prefs.enableModInSingleplayer && (client.isInSingleplayer || client.server?.isRemote == false)) {
-                Integral.logger.info("Detected singleplayer and `enableInSingleplayer` is false")
+                Integral.logger.info("Detected singleplayer, disabling until player joins another world")
                 return@register
             }
             ClientEventC2SPayload(ClientEvent.READY).send(sender)

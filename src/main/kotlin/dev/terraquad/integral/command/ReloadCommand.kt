@@ -13,7 +13,9 @@ object ReloadCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSou
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         Config.loadPrefs()
         Config.loadModpack()
-        context.source.sendFeedback({ textTranslatable("integral.command.reload") }, true)
+        context.source.sendFeedback({
+            textTranslatable("integral.command.reload")
+        }, true)
         return 1
     }
 

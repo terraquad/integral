@@ -13,9 +13,12 @@ import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
 object Config {
-    private val prefsFile
-        get() = FabricLoader.getInstance().configDir.resolve("integral.json")
-    private val modpackFile = FabricLoader.getInstance().configDir.resolve("integral_modpack.json")
+    private val prefsFile = FabricLoader.getInstance()
+        .configDir
+        .resolve("integral.json")
+    private val modpackFile = FabricLoader.getInstance()
+        .configDir
+        .resolve("integral_modpack.json")
     private val configFormat = Json {
         prettyPrint = true
         encodeDefaults = true
