@@ -4,7 +4,7 @@
   "package": "dev.terraquad.integral.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ResourcePackManagerMixin"
+    "PackRepositoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

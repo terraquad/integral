@@ -3,8 +3,8 @@ package dev.terraquad.integral
 import dev.terraquad.integral.config.Config
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
+import net.minecraft.network.chat.Component
 import net.minecraft.server.MinecraftServer
-import net.minecraft.text.Text
 import org.geysermc.geyser.api.GeyserApi
 import java.util.*
 
@@ -18,7 +18,7 @@ object PlayerManager {
     // All players that have the mod
     val enabledPlayers = hashSetOf<UUID>()
 
-    private fun reportCircumstance(server: MinecraftServer, message: Text) {
+    private fun reportCircumstance(server: MinecraftServer, message: Component) {
         if (Config.prefs.summarizeToOperators) {
             Integral.broadcastToOps(server, message)
         }
@@ -27,18 +27,18 @@ object PlayerManager {
 
     fun checkModPresence(server: MinecraftServer) {
         modCheckJoinTicks.onEach { (uuid, tick) ->
-            if (server.ticks - tick > MOD_CHECK_TIMEOUT) {
-                val player = server.playerManager.getPlayer(uuid)!!
+            if (server.tickCount - tick > MOD_CHECK_TIMEOUT) {
+                val player = server.playerList.getPlayer(uuid)!!
                 val isGeyser = runCatching { GeyserApi.api().isBedrockPlayer(uuid) }.getOrDefault(false)
                 if (isGeyser && Config.prefs.reportGeyserPlayers) {
                     reportCircumstance(
                         server,
-                        textTranslatable("integral.player_manager.has_geyser", player.name.string),
+                        componentTranslatable("integral.player_manager.has_geyser", player.name.string),
                     )
                 } else if (!isGeyser) {
                     reportCircumstance(
                         server,
-                        textTranslatable("integral.player_manager.missing_mod", player.name.string),
+                        componentTranslatable("integral.player_manager.missing_mod", player.name.string),
                     )
                 }
                 disablePlayer(uuid)
@@ -60,7 +60,7 @@ object PlayerManager {
 
     fun register() {
         ServerPlayConnectionEvents.JOIN.register { handler, _, server ->
-            modCheckJoinTicks[handler.player.uuid] = server.ticks
+            modCheckJoinTicks[handler.player.uuid] = server.tickCount
         }
 
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->

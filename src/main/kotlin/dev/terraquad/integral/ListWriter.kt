@@ -3,7 +3,7 @@ package dev.terraquad.integral
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.ListReason
 import dev.terraquad.integral.networking.ListType
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 object ListWriter {
     private fun overlayLists(clientList: Entries, serverList: Entries): Triple<Entries, Entries, Entries> {
@@ -30,16 +30,16 @@ object ListWriter {
         playerName: String,
         type: ListType,
         conforms: Boolean,
-    ): Text {
+    ): Component {
         val text =
             if (conforms) {
-                textTranslatable("integral.list.conforms1", playerName)
+                componentTranslatable("integral.list.conforms1", playerName)
             } else {
-                textTranslatable("integral.list.empty", playerName)
+                componentTranslatable("integral.list.empty", playerName)
             }
         text.append(type.asText())
         if (conforms) {
-            text.append(textTranslatable("integral.list.conforms2"))
+            text.append(componentTranslatable("integral.list.conforms2"))
         }
         return text
     }
@@ -50,13 +50,13 @@ object ListWriter {
         clientList: Entries,
         reason: ListReason? = null,
         includeOverlaps: Boolean = false,
-    ): Text {
+    ): Component {
         if (clientList.count() == 0) {
             return writeConclusion(playerName, type, false)
         }
-        val text = textTranslatable("integral.list.base", playerName).append(type.asText())
+        val text = componentTranslatable("integral.list.base", playerName).append(type.asText())
         if (reason != null) {
-            text.append(textTranslatable("integral.list.reason"))
+            text.append(componentTranslatable("integral.list.reason"))
                 .append(reason.asText())
         }
         val serverList = when (type) {
@@ -64,13 +64,13 @@ object ListWriter {
             ListType.RESOURCE_PACKS -> Config.modpack.resourcePacks
         }
         if (Config.prefs.compareLists && serverList != null) {
-            text.append(textTranslatable("integral.list.report_changes")).append(":\n")
+            text.append(componentTranslatable("integral.list.report_changes")).append(":\n")
             val overlay = overlayLists(clientList, serverList)
             // Log added entries
             for ((id, ver) in overlay.second) {
                 text.append("| + $id")
                 if (ver != "") {
-                    text.append(textTranslatable("integral.list.report_entry.client", ver))
+                    text.append(componentTranslatable("integral.list.report_entry.client", ver))
                 }
                 text.append("\n")
             }
@@ -78,7 +78,7 @@ object ListWriter {
             for ((id, ver) in overlay.third) {
                 text.append("| - $id")
                 if (ver != "") {
-                    text.append(textTranslatable("integral.list.report_entry.server", ver))
+                    text.append(componentTranslatable("integral.list.report_entry.server", ver))
                 }
                 text.append("\n")
             }
@@ -90,13 +90,13 @@ object ListWriter {
                         text.append("| ~ $id")
                         if (ver != "") {
                             text.append(
-                                textTranslatable("integral.list.report_entry.client_server", clientVer, serverVer)
+                                componentTranslatable("integral.list.report_entry.client_server", clientVer, serverVer)
                             )
                         }
                     } else {
                         text.append("| ~ $id")
                         if (ver != "") {
-                            text.append(textTranslatable("integral.list.report_entry", ver))
+                            text.append(componentTranslatable("integral.list.report_entry", ver))
                         }
                     }
                     text.append("\n")
@@ -107,7 +107,7 @@ object ListWriter {
         } else {
             text.append(":\n")
             clientList.forEach { (id, ver) ->
-                text.append("| ~ ").append(textTranslatable("integral.list.report_entry", id, ver))
+                text.append("| ~ ").append(componentTranslatable("integral.list.report_entry", id, ver))
             }
         }
         return text
@@ -118,13 +118,13 @@ object ListWriter {
         type: ListType,
         clientList: Entries,
         reason: ListReason? = null,
-    ): Text {
+    ): Component {
         if (clientList.count() == 0) {
             return writeConclusion(playerName, type, false)
         }
-        val text = textTranslatable("integral.list.base", playerName).append(type.asText())
+        val text = componentTranslatable("integral.list.base", playerName).append(type.asText())
         if (reason != null) {
-            text.append(textTranslatable("integral.list.reason"))
+            text.append(componentTranslatable("integral.list.reason"))
                 .append(reason.asText())
         }
         text.append(": ")
@@ -138,7 +138,7 @@ object ListWriter {
                 return writeConclusion(playerName, type, true)
             } else {
                 text.append(
-                    textTranslatable(
+                    componentTranslatable(
                         "integral.list.summary_changes",
                         overlay.first.count(),
                         overlay.second.count(),
@@ -147,7 +147,7 @@ object ListWriter {
                 )
             }
         } else {
-            text.append(textTranslatable("integral.list.summary_total", clientList.count()))
+            text.append(componentTranslatable("integral.list.summary_total", clientList.count()))
         }
         return text
     }

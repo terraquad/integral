@@ -3,22 +3,22 @@ package dev.terraquad.integral.command
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import dev.terraquad.integral.componentTranslatable
 import dev.terraquad.integral.config.Config
-import dev.terraquad.integral.textTranslatable
-import net.minecraft.server.command.CommandManager
-import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.commands.Commands
 
-object ReloadCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource> {
+object ReloadCommand : Command<CommandSourceStack>, Subcommand<CommandSourceStack> {
 
-    override fun run(context: CommandContext<ServerCommandSource>): Int {
+    override fun run(context: CommandContext<CommandSourceStack>): Int {
         Config.loadPrefs()
         Config.loadModpack()
-        context.source.sendFeedback({
-            textTranslatable("integral.command.reload")
+        context.source.sendSuccess({
+            componentTranslatable("integral.command.reload")
         }, true)
         return 1
     }
 
-    override fun getBuilder(): LiteralArgumentBuilder<ServerCommandSource> =
-        CommandManager.literal("reload").executes(ReloadCommand)
+    override fun getBuilder(): LiteralArgumentBuilder<CommandSourceStack> =
+        Commands.literal("reload").executes(ReloadCommand)
 }

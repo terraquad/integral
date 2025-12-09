@@ -43,6 +43,9 @@ repositories {
     maven {
         url = uri("https://repo.erdbeerbaerlp.de/repository/maven-public/")
     }
+    maven {
+        url = uri("https://maven.parchmentmc.org/")
+    }
 }
 
 dependencies {
@@ -53,7 +56,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
-    mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
+    mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
 

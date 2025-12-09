@@ -2,18 +2,18 @@ package dev.terraquad.integral.client
 
 import dev.terraquad.integral.Entries
 import dev.terraquad.integral.Integral
+import dev.terraquad.integral.componentTranslatable
 import dev.terraquad.integral.config.Config
 import dev.terraquad.integral.networking.*
 import dev.terraquad.integral.send
-import dev.terraquad.integral.textTranslatable
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
-import net.minecraft.client.MinecraftClient
-import net.minecraft.resource.ResourcePackProfile
-import net.minecraft.util.Formatting
+import net.minecraft.ChatFormatting
+import net.minecraft.client.Minecraft
+import net.minecraft.server.packs.repository.Pack
 import kotlin.jvm.optionals.getOrNull
 
 class IntegralClient : ClientModInitializer {
@@ -31,11 +31,11 @@ class IntegralClient : ClientModInitializer {
 
         @JvmStatic
         fun getPackList() = Entries(
-            MinecraftClient.getInstance()
-                .resourcePackManager
-                .enabledProfiles
+            Minecraft.getInstance()
+                .resourcePackRepository
+                .selectedPacks
                 .filter(IntegralClient::packShouldBeReported)
-                .associate { it.displayName.string to "" }
+                .associate { it.title.string to "" }
         )
 
         fun modShouldBeReported(mod: ModContainer): Boolean {
@@ -53,8 +53,8 @@ class IntegralClient : ClientModInitializer {
             return !isBuiltin && !isFabric && !hasModMenuLibraryBadge && isTopLevel
         }
 
-        fun packShouldBeReported(pack: ResourcePackProfile): Boolean {
-            return !pack.isRequired && !(pack.info.knownPackInfo().getOrNull()?.isVanilla ?: false)
+        fun packShouldBeReported(pack: Pack): Boolean {
+            return !pack.isRequired && !(pack.location().knownPackInfo().getOrNull()?.isVanilla ?: false)
         }
     }
 
@@ -67,20 +67,20 @@ class IntegralClient : ClientModInitializer {
                 payload.reason,
             )
 
-            val serverInfo = context.client().currentServerEntry
-            if (serverInfo != null && serverInfo.address !in Config.prefs.knownServers) {
-                context.client().player!!.sendMessage(
-                    textTranslatable("integral.privacy_message")
-                        .formatted(Formatting.YELLOW), false
+            val serverInfo = context.client().currentServer
+            if (serverInfo != null && serverInfo.ip !in Config.prefs.knownServers) {
+                context.client().player!!.displayClientMessage(
+                    componentTranslatable("integral.privacy_message")
+                        .withStyle(ChatFormatting.YELLOW), false
                 )
-                context.client().player!!.sendMessage(
-                    textTranslatable(
-                        "integral.privacy_message.dismissed", serverInfo.address
+                context.client().player!!.displayClientMessage(
+                    componentTranslatable(
+                        "integral.privacy_message.dismissed", serverInfo.ip
                     )
-                        .formatted(Formatting.YELLOW)
-                        .formatted(Formatting.ITALIC), false
+                        .withStyle(ChatFormatting.YELLOW)
+                        .withStyle(ChatFormatting.ITALIC), false
                 )
-                Config.prefs = Config.prefs.copy(knownServers = Config.prefs.knownServers + serverInfo.address)
+                Config.prefs = Config.prefs.copy(knownServers = Config.prefs.knownServers + serverInfo.ip)
             }
 
             SendListC2SPayload(
@@ -94,7 +94,7 @@ class IntegralClient : ClientModInitializer {
         }
 
         ClientPlayConnectionEvents.JOIN.register { _, sender, client ->
-            if (!Config.prefs.enableModInSingleplayer && (client.isInSingleplayer || client.server?.isRemote == false)) {
+            if (!Config.prefs.enableModInSingleplayer && (client.isLocalServer || client.singleplayerServer?.isPublished == false)) {
                 Integral.logger.info("Detected singleplayer, disabling until player joins another world")
                 return@register
             }

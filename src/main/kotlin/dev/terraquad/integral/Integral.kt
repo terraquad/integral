@@ -11,9 +11,9 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.ChatFormatting
+import net.minecraft.network.chat.Component
 import net.minecraft.server.MinecraftServer
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
 
 class Integral : ModInitializer {
@@ -38,10 +38,10 @@ class Integral : ModInitializer {
             }
         }
 
-        fun broadcastToOps(server: MinecraftServer, message: Text) {
-            server.playerManager.playerList.filter { it.hasPermissionLevel(2) }.forEach {
-                it.sendMessage(
-                    Text.literal("[Integral] ").append(message).formatted(Formatting.GRAY)
+        fun broadcastToOps(server: MinecraftServer, message: Component) {
+            server.playerList.players.filter { it.hasPermissions(2) }.forEach {
+                it.sendSystemMessage(
+                    Component.literal("[Integral] ").append(message).withStyle(ChatFormatting.GRAY)
                 )
             }
         }

@@ -2,15 +2,15 @@ package dev.terraquad.integral.networking
 
 import dev.terraquad.integral.Integral
 import dev.terraquad.integral.enumCodec
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.util.Identifier
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.resources.ResourceLocation
 
-data class GetListS2CPayload(val type: ListType, val reason: ListReason) : CustomPayload {
+data class GetListS2CPayload(val type: ListType, val reason: ListReason) : CustomPacketPayload {
     companion object {
-        val registry_id = Identifier.of(Integral.MOD_ID, "get_list")!!
-        val id = CustomPayload.Id<GetListS2CPayload>(registry_id)
-        val codec = PacketCodec.tuple(
+        val registry_id = ResourceLocation.fromNamespaceAndPath(Integral.MOD_ID, "get_list")!!
+        val id = CustomPacketPayload.Type<GetListS2CPayload>(registry_id)
+        val codec = StreamCodec.composite(
             enumCodec<ListType>(),
             GetListS2CPayload::type,
             enumCodec<ListReason>(),
@@ -19,7 +19,7 @@ data class GetListS2CPayload(val type: ListType, val reason: ListReason) : Custo
         )!!
     }
 
-    override fun getId(): CustomPayload.Id<out CustomPayload?> {
-        return GetListS2CPayload.id
+    override fun type(): CustomPacketPayload.Type<out CustomPacketPayload?> {
+        return id
     }
 }

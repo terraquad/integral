@@ -12,23 +12,23 @@ import dev.terraquad.integral.networking.GetListS2CPayload
 import dev.terraquad.integral.networking.ListReason
 import dev.terraquad.integral.networking.ListType
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.command.CommandSource
-import net.minecraft.command.argument.EntityArgumentType
-import net.minecraft.server.command.CommandManager
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.commands.Commands
+import net.minecraft.commands.SharedSuggestionProvider
+import net.minecraft.commands.arguments.EntityArgument
+import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
-object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource> {
-    data class RequestorInfo(val source: ServerCommandSource, val summary: Boolean, val overlaps: Boolean)
+object GetCommand : Command<CommandSourceStack>, Subcommand<CommandSourceStack> {
+    data class RequestorInfo(val source: CommandSourceStack, val summary: Boolean, val overlaps: Boolean)
 
-    private val listTypeSuggestionProvider = SuggestionProvider<ServerCommandSource> { _, builder ->
-        CommandSource.suggestMatching(ListType.entries.map { it.toString() }, builder)
+    private val listTypeSuggestionProvider = SuggestionProvider<CommandSourceStack> { _, builder ->
+        SharedSuggestionProvider.suggest(ListType.entries.map { it.toString() }, builder)
     }
     private val listRequestors = hashMapOf<UUID, RequestorInfo>()
 
-    override fun run(context: CommandContext<ServerCommandSource>): Int {
-        val player = EntityArgumentType.getPlayer(context, "player")
+    override fun run(context: CommandContext<CommandSourceStack>): Int {
+        val player = EntityArgument.getPlayer(context, "player")
         val typeString = StringArgumentType.getString(context, "type")
         val type = runCatching { ListType.valueOf(typeString) }.onFailure {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().create()
@@ -47,25 +47,25 @@ object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource
         return 1
     }
 
-    override fun getBuilder(): LiteralArgumentBuilder<ServerCommandSource> = CommandManager.literal("get")
+    override fun getBuilder(): LiteralArgumentBuilder<CommandSourceStack> = Commands.literal("get")
         .then(
-            CommandManager.argument("player", EntityArgumentType.player())
+            Commands.argument("player", EntityArgument.player())
                 .then(
-                    CommandManager.argument("type", StringArgumentType.word())
+                    Commands.argument("type", StringArgumentType.word())
                         .suggests(listTypeSuggestionProvider)
                         .executes(GetCommand)
                         .then(
-                            CommandManager.argument("overlaps", BoolArgumentType.bool())
+                            Commands.argument("overlaps", BoolArgumentType.bool())
                                 .executes(GetCommand)
                                 .then(
-                                    CommandManager.argument("summary", BoolArgumentType.bool())
+                                    Commands.argument("summary", BoolArgumentType.bool())
                                         .executes(GetCommand)
                                 )
                         )
                 )
         )
 
-    fun onListArrival(player: ServerPlayerEntity, type: ListType, list: Entries) {
+    fun onListArrival(player: ServerPlayer, type: ListType, list: Entries) {
         if (player.uuid !in listRequestors) {
             Integral.logger.warn(
                 "${player.name.string} sent a list in response to a get request that never happened..."
@@ -88,7 +88,7 @@ object GetCommand : Command<ServerCommandSource>, Subcommand<ServerCommandSource
                 includeOverlaps = info.overlaps,
             )
         }
-        info.source.sendFeedback({ message }, false)
+        info.source.sendSuccess({ message }, false)
         listRequestors.remove(player.uuid)
     }
 }
